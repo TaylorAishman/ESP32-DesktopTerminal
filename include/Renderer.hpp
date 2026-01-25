@@ -9,6 +9,6 @@
 #include "config.h"
 
 void Renderer_Init();
+void Renderer_ClearScreen();
 void Renderer_RenderWeatherData(const WeatherData* data);
-void Renderer_DrawScreen(const char* message);
 void Renderer_RenderErrorScreen(const char* message);

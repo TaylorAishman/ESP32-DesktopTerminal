@@ -7,11 +7,7 @@ int WeatherData_Parse(WeatherData* data, HTTPClient* http){
   int httpResponseCode = http->GET();
     if (httpResponseCode>0) {
       char str[50];
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
       String payload = http->getString();
-      Serial.println(payload);
-
       JsonDocument doc;
       deserializeJson(doc, payload);
 
@@ -22,8 +18,6 @@ int WeatherData_Parse(WeatherData* data, HTTPClient* http){
       data->daily_high = doc["main"]["temp_max"].as<float>();
     }
     else {
-      Serial.print("Error code: ");
-      Serial.println(httpResponseCode);
       return 0;
     }
     http->end();
