@@ -23,14 +23,26 @@ void Renderer_ClearScreen() {
   display.setCursor(10, 30);
 }
 
+void Renderer_DrawCenteredText(const char *buf, int x, int y)
+{
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
+    display.setCursor(x - w / 2, y);
+    display.print(buf);
+}
+
 void Renderer_RenderWeatherData(const WeatherData* data) {
   Renderer_ClearScreen();
 
   char str[128];
-  snprintf(str, sizeof(str), "The temperature is: %.2f`F and the high today is %.2f`F with lows of %.2f`F", data->temp, data->daily_high, data->daily_low);
 
-  display.print(str);
-  display.drawBitmap(10, 40, weather_128_allArray[data->icon_id], 128, 128, GxEPD_BLACK);
+  display.drawBitmap(36, 15, weather_128_allArray[data->condition.icon_id], 128, 128, GxEPD_BLACK);
+  snprintf(str, sizeof(str), "%d`F (%d`F)", (int) round(data->temp), (int) round(data->feels_like));
+  Renderer_DrawCenteredText(str, 100, 164);
+  snprintf(str, sizeof(str), "%d`F / %d`F", (int) round(data->daily_low), (int) round(data->daily_high));
+  Renderer_DrawCenteredText(str, 100, 189);
+
   display.nextPage();
 }
 

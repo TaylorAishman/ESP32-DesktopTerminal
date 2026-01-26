@@ -10,5 +10,6 @@
 
 void Renderer_Init();
 void Renderer_ClearScreen();
+void Renderer_DrawCenteredText(const char *buf, int x, int y);
 void Renderer_RenderWeatherData(const WeatherData* data);
 void Renderer_RenderErrorScreen(const char* message);
