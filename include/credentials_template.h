@@ -1,5 +1,5 @@
 // credentials_template.h - template for credentials.h
-#pragma once
+// #pragma once
 
 //#define SSID "YOUR SSID HERE"
 //#define PASSWORD "YOUR PASSWORD HERE"
