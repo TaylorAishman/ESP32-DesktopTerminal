@@ -22,8 +22,6 @@ typedef struct {
   WeatherCondition condition;
 } WeatherData;
 
-
-
 WeatherCondition WeatherData_GetCondition(int weather_id);
 int WeatherData_CurrentParse(WeatherData* data, HTTPClient* http);
 int WeatherData_ForecastParse(WeatherData* data, int max_entries, HTTPClient* http);

@@ -4,8 +4,8 @@
 
 #include "CustomBold12pt7b.h"
 #include "credentials.h"
-#include "WeatherData.hpp"
-#include "Renderer.hpp"
+#include "WeatherData/WeatherData.hpp"
+#include "Renderer/Renderer.hpp"
 #include "config.h"
 
 // WiFi Credentials
