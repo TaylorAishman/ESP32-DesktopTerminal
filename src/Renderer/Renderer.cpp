@@ -42,7 +42,7 @@ void Renderer_CenterSubdivide(int screen_length, int subdivisions, int spacing, 
 
 void Renderer_PlaceForecastIcon(const WeatherData* data, int x, int y) {
   char str[32];
-  display.drawBitmap(x - 64, y - 86, weather_128_allArray[data->condition.icon_id], 128, 128, GxEPD_BLACK);
+  display.drawBitmap(x - 64, y - 86, weather_128_allArray[data->icon_id], 128, 128, GxEPD_BLACK);
 
   snprintf(str, sizeof(str), "%d`F", (int) round(data->temp));
   Renderer_DrawCenteredText(str, x, y + 65);
@@ -81,7 +81,7 @@ void Renderer_RenderWeatherData(const WeatherData* data) {
 
   char str[32];
 
-  display.drawBitmap(36, 15, weather_128_allArray[data->condition.icon_id], 128, 128, GxEPD_BLACK);
+  display.drawBitmap(36, 15, weather_128_allArray[data->icon_id], 128, 128, GxEPD_BLACK);
   snprintf(str, sizeof(str), "%d`F (%d`F)", (int) round(data->temp), (int) round(data->feels_like));
   Renderer_DrawCenteredText(str, 100, 165);
   snprintf(str, sizeof(str), "%d`F / %d`F", (int) round(data->daily_low), (int) round(data->daily_high));
