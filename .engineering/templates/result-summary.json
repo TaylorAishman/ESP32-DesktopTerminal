@@ -1,0 +1,9 @@
+{
+  "input": "The bounded request and input artifacts.",
+  "output": "The delivered result and exact commit or artifact.",
+  "why": "The reason this change was needed.",
+  "how": "A short description of the method. No internal thought transcript.",
+  "checks": ["Check name and observed result."],
+  "blockers": [],
+  "artifacts": ["Exact report, PR, commit or evidence path."]
+}

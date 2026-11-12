@@ -1,0 +1,20 @@
+[
+  {
+    "slot": "coder-1",
+    "task": "TASK-001-attempt-1",
+    "input": "One observable change for one small PR.",
+    "message_file": "TASK-001-prompt.md",
+    "write": true,
+    "write_scope": ["src/module-one/**", "tests/module-one/**"],
+    "depends": []
+  },
+  {
+    "slot": "coder-2",
+    "task": "TASK-002-attempt-1",
+    "input": "An independent observable change for a second small PR.",
+    "message_file": "TASK-002-prompt.md",
+    "write": true,
+    "write_scope": ["src/module-two/**", "tests/module-two/**"],
+    "depends": []
+  }
+]

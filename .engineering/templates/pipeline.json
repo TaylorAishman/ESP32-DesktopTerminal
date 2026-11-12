@@ -1,0 +1,56 @@
+{
+  "id": "milestone-001",
+  "max_review_backlog": 2,
+  "tasks": [
+    {
+      "base": "REPLACE_WITH_FULL_BASE_COMMIT_SHA",
+      "context_key": "one-feature",
+      "depends": [],
+      "acceptance": [
+        "Replace with a named project-specific check"
+      ],
+      "expected_output": "Replace with a concrete artifact",
+      "id": "feature",
+      "stage": "implementation",
+      "input": "Implement one observable outcome, including its tests. Link requirements and applicable standards.",
+      "message": "Implement one observable outcome, including its tests. Link requirements and applicable standards.",
+      "write_scope": [
+        "src/one-feature/**",
+        "tests/one-feature/**"
+      ],
+      "requires_preflight": [
+        "git",
+        "project-toolchain"
+      ],
+      "max_repairs": 2
+    },
+    {
+      "base": "REPLACE_WITH_FULL_BASE_COMMIT_SHA",
+      "context_key": "one-feature",
+      "depends": [],
+      "acceptance": [
+        "Replace with a named project-specific check"
+      ],
+      "expected_output": "Replace with a concrete artifact",
+      "id": "feature-review",
+      "stage": "review",
+      "input": "Independently review the exact assigned commit. Test requirements and adverse cases.",
+      "message": "Independently review the exact assigned commit. Test requirements and adverse cases.",
+      "source": "feature"
+    },
+    {
+      "base": "REPLACE_WITH_FULL_BASE_COMMIT_SHA",
+      "context_key": "one-feature",
+      "depends": [],
+      "acceptance": [
+        "Replace with a named project-specific check"
+      ],
+      "expected_output": "Replace with a concrete artifact",
+      "id": "feature-integration",
+      "stage": "integration",
+      "input": "Verify the exact independently approved commit. State target and hardware limitations.",
+      "message": "Verify the exact independently approved commit. State target and hardware limitations.",
+      "source": "feature-review"
+    }
+  ]
+}

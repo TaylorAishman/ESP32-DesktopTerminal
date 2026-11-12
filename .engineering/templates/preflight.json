@@ -1,0 +1,15 @@
+{
+  "checks": [
+    {
+      "name": "python-available",
+      "argv": ["python3", "--version"],
+      "cwd": ".",
+      "timeout_seconds": 30
+    },
+    {
+      "name": "git-available",
+      "argv": ["git", "--version"],
+      "timeout_seconds": 30
+    }
+  ]
+}
