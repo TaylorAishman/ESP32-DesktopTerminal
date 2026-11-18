@@ -1,0 +1,72 @@
+# Your preferences: location, news topics and market instruments.
+#
+# Copy this file to config/user.toml and edit it. config/user.toml is
+# git-ignored. Rebuild and flash the firmware after changing it.
+
+[location]
+# Shown on the Weather page.
+name = "New York"
+latitude = 40.7128
+longitude = -74.0060
+# POSIX time-zone string, used for local time and daylight saving.
+# Examples:
+#   US Eastern   "EST5EDT,M3.2.0,M11.1.0"
+#   US Central   "CST6CDT,M3.2.0,M11.1.0"
+#   US Mountain  "MST7MDT,M3.2.0,M11.1.0"
+#   US Pacific   "PST8PDT,M3.2.0,M11.1.0"
+#   UK           "GMT0BST,M3.5.0/1,M10.5.0"
+#   Central EU   "CET-1CEST,M3.5.0,M10.5.0/3"
+timezone = "EST5EDT,M3.2.0,M11.1.0"
+# "imperial" (°F, mph) or "metric" (°C, km/h).
+units = "imperial"
+
+# ---------------------------------------------------------------------------
+# News topics, in the order they appear. Each topic is one NewsAPI
+# top-headlines request and gets an equal share of the 100 calls/day: with
+# four topics each refreshes about every 64 minutes; more topics refresh less
+# often (the build prints the schedule and fails above max_staleness_s).
+#
+# `params` are passed to https://newsapi.org/docs/endpoints/top-headlines:
+#   country  - two-letter code, e.g. "us"
+#   category - business, entertainment, general, health, science, sports,
+#              technology
+#   sources  - comma-separated source ids (cannot be combined with country
+#              or category)
+#   q        - keywords
+
+[[news.topics]]
+title = "U.S."
+params = { country = "us", category = "general" }
+
+[[news.topics]]
+title = "World"
+params = { sources = "bbc-news,associated-press,al-jazeera-english" }
+
+[[news.topics]]
+title = "Business"
+params = { country = "us", category = "business" }
+
+[[news.topics]]
+title = "Technology"
+params = { country = "us", category = "technology" }
+
+# ---------------------------------------------------------------------------
+# Market instruments, in the order they appear. `label` is shown on screen;
+# `symbol` is the ticker sent to Finnhub. The free plan quotes US stocks and
+# ETFs; indices such as the Dow are shown through an ETF that tracks them.
+
+[[finance.instruments]]
+label = "DJIA (DIA)"
+symbol = "DIA"
+
+[[finance.instruments]]
+label = "VOO"
+symbol = "VOO"
+
+[[finance.instruments]]
+label = "VXUS"
+symbol = "VXUS"
+
+[[finance.instruments]]
+label = "VTI"
+symbol = "VTI"

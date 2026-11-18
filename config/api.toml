@@ -1,0 +1,89 @@
+# API providers, endpoints and call limits.
+#
+# This file is committed and holds no secrets: API keys go in
+# config/secrets.toml. Every URL the firmware calls is built from this file
+# (REQ-CFG-05). The build checks it and prints the derived schedule.
+#
+# How polling works (Requirements §6.1): for each provider the firmware takes
+# the tightest of its `limits`, keeps `utilisation` of it for scheduled calls
+# (the rest is for retries), splits that between the provider's jobs by
+# `weight`, and spaces the calls evenly. `min_interval_s` stops it polling
+# faster than is useful; the build fails if a job would refresh less often
+# than `max_staleness_s`. Refresh intervals are never set by hand.
+
+# Sent with every request. NewsAPI rejects requests without a User-Agent.
+user_agent = "ESP32-DesktopTerminal/0.1"
+
+# ---------------------------------------------------------------------------
+# OpenWeatherMap, free plan: 60 calls/minute and 1,000,000 calls/month.
+# https://openweathermap.org/full-price
+[providers.openweathermap]
+name = "OpenWeatherMap"
+base_url = "https://api.openweathermap.org/data/2.5"
+# The key is sent as the `appid` query parameter.
+auth = { send_as = "query", name = "appid", secret = "openweathermap" }
+limits = [
+    { calls = 60, per = "minute" },
+    { calls = 1000000, per = "month" },
+]
+utilisation = 0.9
+timeout_ms = 10000
+
+# Current conditions. Location parameters are added from config/user.toml.
+[providers.openweathermap.endpoints.current]
+path = "/weather"
+params = { units = "metric" }
+weight = 1
+# OpenWeatherMap updates current conditions about every 10 minutes.
+min_interval_s = 600
+max_staleness_s = 3600
+max_response_bytes = 2048
+
+# 5-day forecast in 3-hour steps.
+[providers.openweathermap.endpoints.forecast]
+path = "/forecast"
+params = { units = "metric" }
+weight = 1
+min_interval_s = 1800
+max_staleness_s = 10800
+max_response_bytes = 24576
+
+# ---------------------------------------------------------------------------
+# NewsAPI, Developer plan: 100 requests/day, no overage.
+# Licensed for development and testing only. https://newsapi.org/pricing
+[providers.newsapi]
+name = "NewsAPI"
+base_url = "https://newsapi.org/v2"
+auth = { send_as = "header", name = "X-Api-Key", secret = "newsapi" }
+limits = [{ calls = 100, per = "day" }]
+utilisation = 0.9
+timeout_ms = 10000
+
+# One job per news topic in config/user.toml; topic parameters are added.
+[providers.newsapi.endpoints.top_headlines]
+path = "/top-headlines"
+params = { pageSize = "6" }
+weight = 1
+min_interval_s = 900
+max_staleness_s = 14400
+max_response_bytes = 16384
+
+# ---------------------------------------------------------------------------
+# Finnhub, free plan: 60 calls/minute. https://finnhub.io/pricing
+[providers.finnhub]
+name = "Finnhub"
+base_url = "https://finnhub.io/api/v1"
+auth = { send_as = "header", name = "X-Finnhub-Token", secret = "finnhub" }
+limits = [{ calls = 60, per = "minute" }]
+utilisation = 0.9
+timeout_ms = 10000
+
+# One job per instrument in config/user.toml; `symbol` is added.
+[providers.finnhub.endpoints.quote]
+path = "/quote"
+weight = 1
+min_interval_s = 60
+max_staleness_s = 900
+max_response_bytes = 512
+# Outside US equity market hours prices do not move; poll this often instead.
+off_hours_interval_s = 3600
