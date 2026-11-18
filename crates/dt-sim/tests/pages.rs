@@ -43,3 +43,11 @@ fn news_page() {
     });
     assert_golden("page_news", &fb);
 }
+
+#[test]
+fn finance_page() {
+    let fb = framed(Page::Finance, |fb, body| {
+        dt_ui::pages::finance::draw(fb, body, &view::finance(&full_store(), &CONFIG, &context()));
+    });
+    assert_golden("page_finance", &fb);
+}
