@@ -10,3 +10,4 @@ publish.workspace = true
 [dependencies]
 
 embedded-graphics.workspace = true
+u8g2-fonts.workspace = true

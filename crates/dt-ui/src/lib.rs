@@ -3,5 +3,6 @@
 #![forbid(unsafe_code)]
 
 pub mod framebuffer;
+pub mod text;
 
 pub use framebuffer::FrameBuffer;
