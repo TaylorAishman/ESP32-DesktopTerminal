@@ -10,6 +10,7 @@ pub mod icon;
 pub mod layout;
 pub mod pages;
 pub mod panel;
+pub mod system;
 pub mod text;
 pub mod ui_icon;
 pub mod view;
