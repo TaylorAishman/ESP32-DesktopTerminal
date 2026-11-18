@@ -1,6 +1,7 @@
 //! Golden images of the pages, rendered from the fixture store.
 
 use dt_core::store::Page;
+use dt_sim::config::CONFIG;
 use dt_sim::fixtures::{context, full_store, NOW, OFFSET};
 use dt_sim::image::assert_golden;
 use dt_ui::chrome::{draw_chrome, Chrome};
@@ -33,4 +34,12 @@ fn weather_page() {
         dt_ui::pages::weather::draw(fb, body, &view::weather(&full_store(), &context()));
     });
     assert_golden("page_weather", &fb);
+}
+
+#[test]
+fn news_page() {
+    let fb = framed(Page::News, |fb, body| {
+        dt_ui::pages::news::draw(fb, body, &view::news(&full_store(), &CONFIG, &context()));
+    });
+    assert_golden("page_news", &fb);
 }
