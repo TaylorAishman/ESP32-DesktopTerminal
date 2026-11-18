@@ -1,5 +1,6 @@
 //! Provider-neutral data models. Parsers produce them; pages display them.
 
+pub mod daily;
 pub mod finance;
 pub mod news;
 pub mod weather;
