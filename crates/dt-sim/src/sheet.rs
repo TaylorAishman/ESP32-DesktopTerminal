@@ -12,7 +12,7 @@ pub fn contact_sheet(icons: &[Icon], sizes: &[u32]) -> FrameBuffer {
     let row_height = sizes.iter().copied().max().unwrap_or(48) as i32 + 8;
     let (mut x, mut y) = (8, 8);
     for icon in icons {
-        let mut cx = x + 110;
+        let mut cx = x + 150;
         for &size in sizes {
             icon.draw(&mut fb, Point::new(cx, y), size, BinaryColor::On);
             cx += size as i32 + 8;

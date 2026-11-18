@@ -81,8 +81,8 @@ mod tests {
 
     #[test]
     fn nearest_smaller_size() {
-        assert_eq!(Icon::Sun.bitmap(40).size, 32);
-        assert_eq!(Icon::Sun.bitmap(500).size, 96);
-        assert_eq!(Icon::Sun.bitmap(4).size, 16);
+        assert_eq!(Icon::ClearDay.bitmap(40).size, 32);
+        assert_eq!(Icon::ClearDay.bitmap(500).size, 96);
+        assert_eq!(Icon::ClearDay.bitmap(4).size, 16);
     }
 }

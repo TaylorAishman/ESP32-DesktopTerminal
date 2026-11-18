@@ -92,8 +92,17 @@ fn rasterise(tree: &resvg::usvg::Tree, size: u32) -> Vec<u8> {
     let mut out = vec![0u8; row * size as usize];
     for y in 0..size as usize {
         for x in 0..size as usize {
-            let alpha = pixmap.pixel(x as u32, y as u32).map_or(0, |p| p.alpha());
-            if alpha >= 128 {
+            // Ink = mostly opaque and dark, so white fills can mask shapes
+            // behind them (a cloud in front of the sun).
+            let ink = pixmap.pixel(x as u32, y as u32).is_some_and(|p| {
+                let c = p.demultiply();
+                let luma = (u32::from(c.red()) * 299
+                    + u32::from(c.green()) * 587
+                    + u32::from(c.blue()) * 114)
+                    / 1000;
+                c.alpha() >= 128 && luma < 128
+            });
+            if ink {
                 out[y * row + x / 8] |= 0x80 >> (x % 8);
             }
         }
