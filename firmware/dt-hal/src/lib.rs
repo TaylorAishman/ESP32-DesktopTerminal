@@ -13,10 +13,12 @@ use esp_idf_sys::dt_hal as ffi;
 pub mod display;
 pub mod error;
 pub mod system;
+pub mod wifi;
 
 pub use display::EinkDisplay;
 pub use error::HalError;
 pub use system::HalSystem;
+pub use wifi::HalWifi;
 
 /// Version string reported by the C HAL.
 pub fn version() -> &'static str {
