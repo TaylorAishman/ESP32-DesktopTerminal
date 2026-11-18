@@ -23,6 +23,7 @@
 #include "hal_err.h"
 #include "hal_http.h"
 #include "hal_pins.h"
+#include "hal_store.h"
 #include "hal_sys.h"
 #include "hal_time.h"
 #include "hal_wifi.h"

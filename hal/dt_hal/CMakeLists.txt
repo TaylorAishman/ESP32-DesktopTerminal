@@ -6,6 +6,7 @@ idf_component_register(
         "src/hal_display.c"
         "src/hal_err.c"
         "src/hal_http.c"
+        "src/hal_store.c"
         "src/hal_sys.c"
         "src/hal_time.c"
         "src/hal_version.c"
