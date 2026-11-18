@@ -11,3 +11,6 @@ publish.workspace = true
 
 embedded-graphics.workspace = true
 u8g2-fonts.workspace = true
+
+[build-dependencies]
+resvg.workspace = true

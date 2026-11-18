@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod image;
+pub mod sheet;
 
 /// Configuration generated from `config/api.toml` and the example user and
 /// secrets files.
