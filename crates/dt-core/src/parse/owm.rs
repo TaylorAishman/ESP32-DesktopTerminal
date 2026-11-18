@@ -3,7 +3,7 @@
 
 use serde::Deserialize;
 
-use crate::model::{Condition, Current};
+use crate::model::{Condition, Current, HourlyPoint};
 use crate::platform::UnixTime;
 
 /// Map an OpenWeatherMap condition id to a [`Condition`].
@@ -93,11 +93,108 @@ pub fn parse_current(body: &[u8]) -> Result<Current, String> {
     })
 }
 
+#[derive(Deserialize)]
+struct ForecastBody {
+    list: Vec<ForecastEntry>,
+}
+
+#[derive(Deserialize)]
+struct ForecastEntry {
+    dt: i64,
+    main: ForecastMain,
+    weather: Vec<WeatherEntry>,
+    /// Probability of precipitation, 0 to 1.
+    #[serde(default)]
+    pop: f32,
+    #[serde(default)]
+    rain: Option<Volume>,
+    #[serde(default)]
+    snow: Option<Volume>,
+    #[serde(default)]
+    sys: Option<PartOfDay>,
+}
+
+#[derive(Deserialize)]
+struct ForecastMain {
+    temp: f32,
+}
+
+#[derive(Deserialize)]
+struct Volume {
+    #[serde(rename = "3h", default)]
+    three_hours: f32,
+}
+
+#[derive(Deserialize)]
+struct PartOfDay {
+    pod: String,
+}
+
+/// Parse a `/forecast` response (requested with `units=metric`) into its
+/// 3-hour steps, in time order.
+pub fn parse_forecast(body: &[u8]) -> Result<Vec<HourlyPoint>, String> {
+    let b: ForecastBody = serde_json::from_slice(body).map_err(|e| e.to_string())?;
+    if b.list.is_empty() {
+        return Err("forecast has no entries".into());
+    }
+    let mut points: Vec<HourlyPoint> = b
+        .list
+        .into_iter()
+        .map(|e| {
+            let w = e.weather.first();
+            HourlyPoint {
+                at: UnixTime(e.dt),
+                temperature_c: e.main.temp,
+                condition: w.map_or(Condition::Unknown, |w| condition(w.id)),
+                is_day: match &e.sys {
+                    Some(s) => s.pod != "n",
+                    None => w.is_none_or(WeatherEntry::is_day),
+                },
+                precip_probability: e.pop.clamp(0.0, 1.0),
+                precip_mm: e.rain.map_or(0.0, |v| v.three_hours)
+                    + e.snow.map_or(0.0, |v| v.three_hours),
+            }
+        })
+        .collect();
+    points.sort_by_key(|p| p.at);
+    Ok(points)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     const FIXTURE: &[u8] = include_bytes!("../../tests/fixtures/owm_current.json");
+    const FORECAST: &[u8] = include_bytes!("../../tests/fixtures/owm_forecast.json");
+
+    #[test]
+    fn parses_forecast_fixture() {
+        let f = parse_forecast(FORECAST).unwrap();
+        assert_eq!(f.len(), 40);
+        assert_eq!(f[0].at, UnixTime(1_794_927_600)); // 2026-11-17 15:00 UTC
+        assert!(f.windows(2).all(|w| w[1].at.0 - w[0].at.0 == 10_800));
+        assert_eq!(f[0].condition, Condition::Clear);
+        assert!(f[0].is_day);
+        assert_eq!(f[5].condition, Condition::Rain);
+        assert_eq!(f[5].precip_mm, 0.6);
+        assert_eq!(f[10].condition, Condition::Snow);
+        assert_eq!(f[10].precip_mm, 1.1);
+        assert!((f[4].precip_probability - 0.8).abs() < 1e-6);
+    }
+
+    #[test]
+    fn forecast_fits_the_configured_buffer() {
+        // config/api.toml: forecast max_response_bytes = 24576.
+        assert!(FORECAST.len() < 24_576 * 3 / 4, "{} bytes", FORECAST.len());
+    }
+
+    #[test]
+    fn empty_forecast_is_an_error() {
+        assert_eq!(
+            parse_forecast(br#"{"list":[]}"#).unwrap_err(),
+            "forecast has no entries"
+        );
+    }
 
     #[test]
     fn parses_fixture() {
