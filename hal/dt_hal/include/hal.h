@@ -22,6 +22,7 @@
 #include "hal_display.h"
 #include "hal_err.h"
 #include "hal_pins.h"
+#include "hal_sys.h"
 
 #ifdef __cplusplus
 extern "C" {
