@@ -1,0 +1,7 @@
+# ESP32 Desktop Terminal partition table, 4 MB flash.
+# One factory app slot and no OTA: maximum room for the image, and the device
+# is always recoverable over USB (Architecture D-8, REQ-ERR-08).
+# Name,    Type, SubType, Offset,   Size
+nvs,       data, nvs,     0x9000,   0x6000
+phy_init,  data, phy,     0xf000,   0x1000
+factory,   app,  factory, 0x10000,  0x3F0000

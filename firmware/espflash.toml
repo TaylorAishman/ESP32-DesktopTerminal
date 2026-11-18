@@ -1,0 +1,6 @@
+# espflash settings for `cargo run` from this directory.
+[idf]
+partition_table = "partitions.csv"
+
+[flash]
+size = "4MB"

@@ -8,3 +8,12 @@ CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=4096
 
 # 1 ms tick so thread::sleep and timeouts have useful resolution.
 CONFIG_FREERTOS_HZ=1000
+
+# 4 MB flash. The partition table itself is in partitions.csv and is written
+# by espflash (see espflash.toml).
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# Keep the device recoverable over USB: no secure boot, no flash encryption
+# (REQ-ERR-08). These are ESP-IDF's defaults; stated here so they stay off.
+# CONFIG_SECURE_BOOT is not set
+# CONFIG_SECURE_FLASH_ENC_ENABLED is not set
