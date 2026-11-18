@@ -11,3 +11,6 @@
 # Personal configuration and secrets (create from the *.example.toml templates)
 /config/secrets.toml
 /config/user.toml
+
+# ESP-IDF and tools downloaded by esp-idf-sys
+/firmware/.embuild/

@@ -6,6 +6,8 @@ members = [
     "crates/dt-ui",
     "crates/dt-sim",
 ]
+# The device crates live in their own workspace with the esp toolchain.
+exclude = ["firmware"]
 
 [workspace.package]
 version = "0.1.0"

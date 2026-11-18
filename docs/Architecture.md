@@ -74,11 +74,15 @@ flowchart TB
 
 ```
 ESP32-DesktopTerminal/
-├── Cargo.toml                 workspace
-├── rust-toolchain.toml        esp (Xtensa) toolchain
-├── .cargo/config.toml         target, runner, ESP-IDF version pin
-├── sdkconfig.defaults         ESP-IDF options
-├── partitions.csv
+├── Cargo.toml                 host workspace (stable Rust): crates/*
+├── firmware/                  device workspace (esp Rust toolchain)
+│   ├── Cargo.toml             workspace: dt-hal, dt-firmware
+│   ├── rust-toolchain.toml    esp (Xtensa) toolchain
+│   ├── .cargo/config.toml     target, runner, ESP-IDF version pin
+│   ├── sdkconfig.defaults     ESP-IDF options
+│   ├── partitions.csv
+│   ├── dt-hal/                FFI bindings + safe wrappers (only crate with unsafe)
+│   └── dt-firmware/           the binary: boot, threads, event loop
 ├── config/
 │   ├── api.toml               URLs, limits, polling floors      (committed)
 │   ├── user.example.toml      topics, symbols, location         (template)
@@ -93,12 +97,17 @@ ESP32-DesktopTerminal/
 │   ├── dt-config/             config schema, validation, code generation (host)
 │   ├── dt-core/               models, store, parsers, API manager, traits, errors
 │   ├── dt-ui/                 frame buffer, fonts, icons, widgets, pages
-│   ├── dt-hal/                FFI bindings + safe wrappers (only crate with unsafe)
-│   ├── dt-firmware/           the binary: boot, threads, event loop
 │   └── dt-sim/                host simulator: pages → PNG, golden tests
 ├── assets/                    icon and font sources
 └── docs/
 ```
+
+There are two Cargo workspaces because the two halves need different
+toolchains. The host crates build and test with stable Rust on a PC; the
+firmware crates need the `esp` Xtensa toolchain and a cross-compilation target.
+A single workspace would force the `esp` toolchain and the device target onto
+every host build and test. The firmware workspace depends on the host crates by
+path, so there is still one copy of every crate.
 
 Crate dependencies point one way:
 

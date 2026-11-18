@@ -1,0 +1,4 @@
+# The ESP32 (Xtensa) needs Espressif's Rust fork, installed with `espup install`.
+# See docs/Setup.md.
+[toolchain]
+channel = "esp"
