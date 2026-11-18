@@ -2,6 +2,7 @@
 //! returns a short reason on failure; the fetch executor turns that into an
 //! `AppError` naming the provider and endpoint.
 
+pub mod finnhub;
 pub mod newsapi;
 pub mod owm;
 pub mod text;
