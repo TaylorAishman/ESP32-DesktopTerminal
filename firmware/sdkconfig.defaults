@@ -17,3 +17,13 @@ CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 # (REQ-ERR-08). These are ESP-IDF's defaults; stated here so they stay off.
 # CONFIG_SECURE_BOOT is not set
 # CONFIG_SECURE_FLASH_ENC_ENABLED is not set
+
+# A thread that stops feeding the task watchdog panics, and the panic
+# handler restarts the chip (REQ-ERR-05). Threads register themselves with
+# hal_sys_wdt_register; the idle tasks are not watched.
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_PANIC=y
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+CONFIG_ESP_SYSTEM_PANIC_PRINT_REBOOT=y

@@ -38,6 +38,15 @@ hal_reset_reason_t hal_sys_reset_reason(void);
 /* Restart the chip. Does not return. */
 void hal_sys_restart(void);
 
+/*
+ * Task watchdog. A thread that registers must call hal_sys_wdt_feed() at
+ * least every `timeout_ms`, or the chip restarts (reset reason: watchdog).
+ * The watchdog has one timeout for all threads: the largest requested.
+ * Both act on the calling thread.
+ */
+hal_err_t hal_sys_wdt_register(uint32_t timeout_ms);
+hal_err_t hal_sys_wdt_feed(void);
+
 /* Largest block hal_sys_retained_write() accepts. */
 #define HAL_SYS_RETAINED_MAX 256
 

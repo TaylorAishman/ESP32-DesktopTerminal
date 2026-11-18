@@ -1,11 +1,17 @@
 #include "hal_sys.h"
 
+#include <stdbool.h>
+
 #include <string.h>
 
 #include "esp_attr.h"
 #include "esp_heap_caps.h"
 #include "esp_rom_crc.h"
+#include "esp_log.h"
 #include "esp_system.h"
+#include "esp_task_wdt.h"
+#include "hal_internal.h"
+#include "freertos/FreeRTOS.h"
 #include "esp_timer.h"
 
 uint64_t hal_sys_uptime_ms(void)
@@ -89,4 +95,52 @@ hal_err_t hal_sys_retained_write(const uint8_t *data, size_t len)
     s_retained.crc = retained_crc(&s_retained);
     s_retained.magic = RETAINED_MAGIC;
     return HAL_OK;
+}
+
+static const char *TAG = "hal_sys";
+static uint32_t s_wdt_timeout_ms;
+static portMUX_TYPE s_wdt_lock = portMUX_INITIALIZER_UNLOCKED;
+
+hal_err_t hal_sys_wdt_register(uint32_t timeout_ms)
+{
+    if (timeout_ms == 0) {
+        return HAL_ERR_INVALID_ARG;
+    }
+    bool grow = false;
+    taskENTER_CRITICAL(&s_wdt_lock);
+    if (timeout_ms > s_wdt_timeout_ms) {
+        s_wdt_timeout_ms = timeout_ms;
+        grow = true;
+    }
+    uint32_t effective = s_wdt_timeout_ms;
+    taskEXIT_CRITICAL(&s_wdt_lock);
+
+    if (grow) {
+        const esp_task_wdt_config_t cfg = {
+            .timeout_ms = effective,
+            .idle_core_mask = 0, /* our threads are watched, not the idle tasks */
+            .trigger_panic = true,
+        };
+        esp_err_t err = esp_task_wdt_reconfigure(&cfg);
+        if (err == ESP_ERR_INVALID_STATE) { /* not running yet */
+            err = esp_task_wdt_init(&cfg);
+        }
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "watchdog configure: %s", esp_err_to_name(err));
+            return hal_from_esp(err);
+        }
+    }
+    esp_err_t err = esp_task_wdt_add(NULL);
+    if (err != ESP_OK && err != ESP_ERR_INVALID_ARG /* already added */) {
+        ESP_LOGE(TAG, "watchdog add: %s", esp_err_to_name(err));
+        return hal_from_esp(err);
+    }
+    ESP_LOGI(TAG, "watchdog: thread registered, timeout %u ms", (unsigned)effective);
+    return HAL_OK;
+}
+
+hal_err_t hal_sys_wdt_feed(void)
+{
+    esp_err_t err = esp_task_wdt_reset();
+    return err == ESP_OK ? HAL_OK : hal_from_esp(err);
 }
