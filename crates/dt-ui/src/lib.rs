@@ -2,6 +2,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod chart;
 pub mod chrome;
 pub mod framebuffer;
 pub mod icon;
