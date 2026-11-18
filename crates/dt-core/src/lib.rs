@@ -4,6 +4,7 @@
 
 pub mod api;
 pub mod api_error;
+pub mod config;
 pub mod error;
 pub mod model;
 pub mod platform;

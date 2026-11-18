@@ -41,6 +41,7 @@ dependencies = [
 name = "dt-sim"
 version = "0.1.0"
 dependencies = [
+ "dt-config",
  "dt-core",
  "dt-ui",
 ]
