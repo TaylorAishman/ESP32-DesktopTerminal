@@ -16,3 +16,12 @@ ESP_IDF_VERSION = "v5.5.3"
 # The workspace is virtual; tell esp-idf-sys which crate is the binary so it
 # finds the C HAL component declared by its dependency dt-hal.
 ESP_IDF_SYS_ROOT_CRATE = "dt-firmware"
+# Make esp-idf-sys rebuild when any C HAL file changes. By default it only
+# tracks the bindings header (hal.h), so an edit to a .c file alone would be
+# silently ignored. Tracked files are also copied into the generated ESP-IDF
+# project (under dt_hal/, outside its component search path), which is harmless.
+ESP_IDF_GLOB_HAL_BASE = { value = "../hal", relative = true }
+# Files only: a glob matching a directory makes the copy step panic.
+ESP_IDF_GLOB_HAL_SOURCES = "dt_hal/**/*.c"
+ESP_IDF_GLOB_HAL_HEADERS = "dt_hal/**/*.h"
+ESP_IDF_GLOB_HAL_CMAKE = "dt_hal/CMakeLists.txt"

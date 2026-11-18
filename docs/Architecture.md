@@ -138,8 +138,10 @@ the module `esp_idf_sys::dt_hal`. Two details matter (proven in plan task A06):
   `ESP_IDF_SYS_ROOT_CRATE = "dt-firmware"` is set in
   `firmware/.cargo/config.toml`, and `dt-firmware` depends on `dt-hal`
   directly.
-- After changing the component list, `cargo clean -p esp-idf-sys` forces the
-  bindings to regenerate.
+- `esp-idf-sys` re-runs the ESP-IDF build only for files it tracks, and by
+  default that is just `hal.h`. `firmware/.cargo/config.toml` adds every
+  `.c`, `.h` and `CMakeLists.txt` under `hal/dt_hal` through its
+  `ESP_IDF_GLOB_HAL_*` settings, so editing any HAL file rebuilds it.
 
 ### 4.1 Rules
 
