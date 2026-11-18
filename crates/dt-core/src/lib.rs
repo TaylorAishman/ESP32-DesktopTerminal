@@ -9,6 +9,7 @@ pub mod error;
 pub mod model;
 pub mod platform;
 pub mod secret;
+pub mod store;
 pub mod time;
 
 pub use error::{AppError, Category, ErrorCode};
