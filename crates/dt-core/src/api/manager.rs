@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 
 use super::fetch::{execute, FetchReport};
 use super::jobs::{build_jobs, Job};
+use super::market::is_us_market_open;
 use super::scheduler::{Action, Outcome, Scheduler};
 use crate::config::Config;
 use crate::platform::{Clock, HttpClient, Wifi};
@@ -99,6 +100,7 @@ impl<H: HttpClient> ApiManager<H> {
         let Some(wall) = self.clock.now() else {
             return Step::WaitingForTime;
         };
+        self.apply_market_hours(wall);
         match self.scheduler.next(self.clock.monotonic(), wall) {
             Action::Wait(d) => Step::Idle(d),
             Action::Run(i) => {
@@ -125,6 +127,18 @@ impl<H: HttpClient> ApiManager<H> {
                     pages,
                     report: Box::new(report),
                 }
+            }
+        }
+    }
+
+    /// Poll quotes at their off-hours interval while US markets are closed.
+    fn apply_market_hours(&mut self, wall: crate::platform::UnixTime) {
+        let open = is_us_market_open(wall);
+        let now = self.clock.monotonic();
+        for (i, job) in self.jobs.iter().enumerate() {
+            if let Some(off) = job.off_hours_interval {
+                let interval = if open { job.timing.interval } else { off };
+                self.scheduler.set_interval(i, interval, now);
             }
         }
     }

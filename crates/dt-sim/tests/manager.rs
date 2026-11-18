@@ -104,7 +104,7 @@ fn waits_for_wifi_and_time_then_fills_the_store() {
 fn simulated_day_stays_within_every_limit() {
     let mut r = rig();
     r.wifi.set_connected();
-    r.clock.sync(UnixTime(1_794_873_600));
+    r.clock.sync(UnixTime(1_794_873_600)); // Tue 17 Nov 2026 00:00 UTC
     run_for(&mut r, 86_400);
 
     let mut per_host: HashMap<&str, usize> = HashMap::new();
@@ -122,8 +122,9 @@ fn simulated_day_stays_within_every_limit() {
         (190..=194).contains(&per_host["openweathermap"]),
         "{per_host:?}"
     );
-    // Quotes every minute: 4 × 1440 (market hours are not modelled here).
-    assert!((5750..=5770).contains(&per_host["finnhub"]), "{per_host:?}");
+    // Tue 17 Nov 2026 UTC: quotes every minute during the 6.5 h session
+    // (plus margins), hourly otherwise: 4 × (400 + ~18) ≈ 1670.
+    assert!((1600..=1720).contains(&per_host["finnhub"]), "{per_host:?}");
 }
 
 #[test]

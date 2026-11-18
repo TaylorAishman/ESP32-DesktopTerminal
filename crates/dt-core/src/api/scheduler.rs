@@ -133,14 +133,23 @@ impl Scheduler {
         }
     }
 
-    /// Change a job's interval (e.g. outside market hours). The grid is
-    /// re-anchored at the job's next due time.
-    pub fn set_interval(&mut self, index: usize, interval: Duration) {
+    /// Change a job's interval (e.g. at the market open or close), at time
+    /// `now`. When the interval shrinks, a run already booked further out than
+    /// one new interval is pulled in, keeping its offset modulo the new
+    /// interval so staggered jobs stay staggered. The grid is re-anchored at
+    /// the job's next due time.
+    pub fn set_interval(&mut self, index: usize, interval: Duration, now: Instant) {
         let job = &mut self.jobs[index];
-        if job.interval != interval {
-            job.interval = interval;
-            job.anchor = job.due;
+        if job.interval == interval {
+            return;
         }
+        job.interval = interval;
+        if job.due > now + interval {
+            let step = interval.as_millis().max(1) as u64;
+            let ahead = job.due.as_millis() - now.as_millis();
+            job.due = Instant::from_millis(now.as_millis() + ahead % step);
+        }
+        job.anchor = job.due;
     }
 
     pub fn interval(&self, index: usize) -> Duration {
@@ -377,6 +386,24 @@ mod tests {
                 "job {i}: {n} runs, expected ~{expected}"
             );
         }
+    }
+
+    #[test]
+    fn shortening_an_interval_pulls_runs_in_and_keeps_stagger() {
+        let jobs: Vec<Job> = (0..4)
+            .map(|i| job(&QUOTES, JobKind::Quote(i), 3600, 15 * i as u64))
+            .collect();
+        let mut s = Scheduler::new(&jobs, Instant::ZERO, 1);
+        let now = Instant::from_millis(1_000);
+        for i in 0..4 {
+            s.set_interval(i, Duration::from_secs(60), now);
+        }
+        let dues: Vec<u64> = (0..4).map(|i| s.due(i).as_millis()).collect();
+        // Already due (job 0 at 0 s) stays; the others keep their 15 s spacing.
+        assert_eq!(dues, [0, 15_000, 30_000, 45_000]);
+        // Lengthening never pulls a run in.
+        s.set_interval(1, Duration::from_secs(3600), now);
+        assert_eq!(s.due(1).as_millis(), 15_000);
     }
 
     #[test]
