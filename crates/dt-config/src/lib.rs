@@ -4,6 +4,8 @@
 
 pub mod api;
 pub mod error;
+pub mod user;
 
 pub use api::{parse_api, ApiConfig};
 pub use error::{ConfigError, ConfigErrors};
+pub use user::{parse_user, UserConfig};
