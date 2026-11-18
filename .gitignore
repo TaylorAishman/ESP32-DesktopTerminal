@@ -7,3 +7,7 @@
 .vscode/
 *.swp
 .DS_Store
+
+# Personal configuration and secrets (create from the *.example.toml templates)
+/config/secrets.toml
+/config/user.toml

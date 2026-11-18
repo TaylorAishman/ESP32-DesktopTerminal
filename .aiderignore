@@ -1,0 +1,3 @@
+# Keep personal configuration and secrets away from AI tools.
+config/secrets.toml
+config/user.toml

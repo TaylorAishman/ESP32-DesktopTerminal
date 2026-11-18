@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./config/secrets.toml)",
+      "Edit(./config/secrets.toml)",
+      "Read(./config/user.toml)",
+      "Edit(./config/user.toml)"
+    ]
+  }
+}
