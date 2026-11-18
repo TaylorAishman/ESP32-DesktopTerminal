@@ -5,9 +5,9 @@ use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, primitives::Rectang
 use crate::chart::sparkline;
 use crate::layout::{titled_panel, vline, RectExt, GAP};
 use crate::pages::finance::direction_icon;
-use crate::panel::{draw_panel_state, stale_note};
+use crate::panel::draw_panel;
 use crate::text::{Align, BODY, BODY_BOLD, DISPLAY, HERO, SMALL, SMALL_BOLD};
-use crate::view::{HomeView, Panel, WeatherView};
+use crate::view::{CurrentView, HomeView, Panel, QuoteView, WeatherView};
 
 const ON: BinaryColor = BinaryColor::On;
 
@@ -28,22 +28,20 @@ pub fn draw<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle,
 
 fn weather<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle, w: &WeatherView) {
     let body = titled_panel(target, area, &w.location);
-    let (c, age) = match &w.current {
-        Panel::Fresh(c) => (c, None),
-        Panel::Stale { data, age, .. } => (data, Some(age)),
-        other => return draw_panel_state(target, body, other),
-    };
+    draw_panel(target, body, &w.current, |t, a, c| now(t, a, c, w));
+}
+
+fn now<D: DrawTarget<Color = BinaryColor>>(
+    target: &mut D,
+    body: Rectangle,
+    c: &CurrentView,
+    w: &WeatherView,
+) {
     let (x, y) = (body.top_left.x, body.top_left.y);
     c.icon.draw(target, Point::new(x, y + 2), 64, ON);
     HERO.draw(target, &c.temperature, x + 76, y + 50, Align::Left, ON);
-    BODY_BOLD.draw(
-        target,
-        &BODY_BOLD.truncate(&c.condition, body.size.width as i32),
-        x,
-        y + 92,
-        Align::Left,
-        ON,
-    );
+    let condition = BODY_BOLD.truncate(&c.condition, body.size.width as i32);
+    BODY_BOLD.draw(target, &condition, x, y + 92, Align::Left, ON);
     if let Some(t) = &w.today {
         BODY.draw(target, t, x, y + 116, Align::Left, ON);
     }
@@ -64,9 +62,6 @@ fn weather<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle, 
                 ON,
             );
         }
-    }
-    if let Some(age) = age {
-        stale_note(target, body, age);
     }
 }
 
@@ -107,34 +102,32 @@ fn markets<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle, 
     let body = titled_panel(target, area, "Markets");
     let n = v.instruments.len().max(1);
     for (inst, col) in v.instruments.iter().zip(body.split_columns(n, 2 * GAP)) {
-        let (x, y) = (col.top_left.x, col.top_left.y);
+        let label = SMALL_BOLD.truncate(&inst.label, col.size.width as i32);
         SMALL_BOLD.draw(
             target,
-            &SMALL_BOLD.truncate(&inst.label, col.size.width as i32),
-            x,
-            y + 12,
+            &label,
+            col.top_left.x,
+            col.top_left.y + 12,
             Align::Left,
             ON,
         );
-        let Some(q) = inst.quote.data() else {
-            draw_panel_state(target, col.split_top(16).1, &inst.quote);
-            continue;
-        };
-        let (chart, text) = col.split_right(col.size.width / 3);
-        DISPLAY.draw(
-            target,
-            &DISPLAY.truncate(&q.price, text.size.width as i32),
-            x,
-            y + 46,
-            Align::Left,
-            ON,
-        );
-        direction_icon(q.direction).draw(target, Point::new(x, y + 56), 16, ON);
-        SMALL_BOLD.draw(target, &q.change_pct, x + 20, y + 70, Align::Left, ON);
-        let chart = Rectangle::new(
-            chart.top_left + Point::new(GAP as i32 + 4, 22),
-            Size::new(chart.size.width.saturating_sub(GAP + 4), 44),
-        );
-        sparkline(target, chart, &q.history, Some(q.previous_close));
+        // Content starts below the label row, where a stale marker can sit.
+        draw_panel(target, col.split_top(30).1, &inst.quote, |t, a, q| {
+            market(t, a, q)
+        });
     }
+}
+
+fn market<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle, q: &QuoteView) {
+    let (x, y) = (area.top_left.x, area.top_left.y);
+    let (chart, text) = area.split_right(area.size.width / 3);
+    let price = DISPLAY.truncate(&q.price, text.size.width as i32);
+    DISPLAY.draw(target, &price, x, y + 16, Align::Left, ON);
+    direction_icon(q.direction).draw(target, Point::new(x, y + 26), 16, ON);
+    SMALL_BOLD.draw(target, &q.change_pct, x + 20, y + 40, Align::Left, ON);
+    let chart = Rectangle::new(
+        chart.top_left + Point::new(GAP as i32 + 4, -8),
+        Size::new(chart.size.width.saturating_sub(GAP + 4), 44),
+    );
+    sparkline(target, chart, &q.history, Some(q.previous_close));
 }

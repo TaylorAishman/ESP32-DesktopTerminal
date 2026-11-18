@@ -6,9 +6,9 @@ use crate::chart::sparkline;
 use crate::icon::Icon;
 use crate::layout::{titled_panel, RectExt, GAP};
 use crate::pages::news::grid;
-use crate::panel::{draw_panel_state, stale_note};
+use crate::panel::draw_panel;
 use crate::text::{Align, BODY_BOLD, DISPLAY, SMALL};
-use crate::view::{Direction, InstrumentView, Panel, QuoteView};
+use crate::view::{Direction, InstrumentView, QuoteView};
 
 const ON: BinaryColor = BinaryColor::On;
 
@@ -19,14 +19,7 @@ pub fn draw<D: DrawTarget<Color = BinaryColor>>(
 ) {
     for (inst, cell) in instruments.iter().zip(grid(area, instruments.len())) {
         let body = titled_panel(target, cell, &inst.label);
-        match &inst.quote {
-            Panel::Fresh(q) => card(target, body, q),
-            Panel::Stale { data, age, .. } => {
-                card(target, body, data);
-                stale_note(target, body, age);
-            }
-            other => draw_panel_state(target, body, other),
-        }
+        draw_panel(target, body, &inst.quote, |t, a, q| card(t, a, q));
     }
 }
 

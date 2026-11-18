@@ -3,9 +3,9 @@
 use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, primitives::Rectangle};
 
 use crate::layout::{titled_panel, RectExt, GAP};
-use crate::panel::{draw_panel_state, stale_note};
+use crate::panel::draw_panel;
 use crate::text::{Align, BODY, SMALL};
-use crate::view::{HeadlineView, Panel, TopicView};
+use crate::view::{HeadlineView, TopicView};
 
 const ON: BinaryColor = BinaryColor::On;
 /// Height of one headline: two title lines, the source line and spacing.
@@ -18,14 +18,7 @@ pub fn draw<D: DrawTarget<Color = BinaryColor>>(
 ) {
     for (topic, cell) in topics.iter().zip(grid(area, topics.len())) {
         let body = titled_panel(target, cell, &topic.title);
-        match &topic.headlines {
-            Panel::Fresh(h) => headlines(target, body, h),
-            Panel::Stale { data, age, .. } => {
-                headlines(target, body, data);
-                stale_note(target, body, age);
-            }
-            other => draw_panel_state(target, body, other),
-        }
+        draw_panel(target, body, &topic.headlines, |t, a, h| headlines(t, a, h));
     }
 }
 

@@ -84,3 +84,93 @@ fn fill_quote(s: &mut Store, i: usize, label: &str, symbol: &str) {
         });
     }
 }
+
+/// Nothing fetched yet.
+pub fn empty_store() -> Store {
+    Store::new(CONFIG.topics.len(), CONFIG.instruments.len())
+}
+
+fn err(code: dt_core::ErrorCode, message: &str) -> dt_core::AppError {
+    dt_core::AppError::with_message(code, message)
+}
+
+/// Every source failed before any data arrived, each in its own way.
+pub fn failed_store() -> Store {
+    use dt_core::ErrorCode::*;
+    let mut s = empty_store();
+    let at = UnixTime(NOW.0 - 120);
+    s.apply(Update {
+        at,
+        kind: UpdateKind::Current(Err(err(
+            NetDns,
+            "Could not find api.openweathermap.org (DNS lookup failed).",
+        ))),
+    });
+    s.apply(Update {
+        at,
+        kind: UpdateKind::Forecast(Err(err(
+            NetTimeout,
+            "api.openweathermap.org did not respond in time.",
+        ))),
+    });
+    for i in 0..CONFIG.topics.len() {
+        let e = err(
+            ApiUnauthorized,
+            "NewsAPI rejected the API key (HTTP 401): Your API key is invalid or incorrect.",
+        )
+        .hint("Check the key 'newsapi' in config/secrets.toml.");
+        s.apply(Update {
+            at,
+            kind: UpdateKind::News(i, Err(e)),
+        });
+    }
+    for (i, inst) in CONFIG.instruments.iter().enumerate() {
+        let e = if i == 0 {
+            err(
+                ApiUnknownSymbol,
+                &format!("Finnhub does not know the symbol '{}'.", inst.symbol),
+            )
+            .hint(format!(
+                "Check the symbol for '{}' in config/user.toml.",
+                inst.label
+            ))
+        } else {
+            err(ApiRateLimited, "Finnhub rate limit reached (HTTP 429).")
+        };
+        s.apply(Update {
+            at,
+            kind: UpdateKind::Quote(i, Err(e)),
+        });
+    }
+    s
+}
+
+/// Data from earlier, then every refresh failing (e.g. Wi-Fi down): shown
+/// with stale markers.
+pub fn stale_store() -> Store {
+    use dt_core::ErrorCode::*;
+    let mut s = full_store();
+    let at = UnixTime(NOW.0 - 60);
+    let off = || err(NetOffline, "No network connection.");
+    s.apply(Update {
+        at,
+        kind: UpdateKind::Current(Err(off())),
+    });
+    s.apply(Update {
+        at,
+        kind: UpdateKind::Forecast(Err(off())),
+    });
+    for i in 0..CONFIG.topics.len() {
+        s.apply(Update {
+            at,
+            kind: UpdateKind::News(i, Err(off())),
+        });
+    }
+    for i in 0..CONFIG.instruments.len() {
+        s.apply(Update {
+            at,
+            kind: UpdateKind::Quote(i, Err(off())),
+        });
+    }
+    s
+}

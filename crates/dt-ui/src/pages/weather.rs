@@ -5,9 +5,9 @@ use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, primitives::Rectang
 use crate::chart::line_chart;
 use crate::icon::Icon;
 use crate::layout::{titled_panel, vline, RectExt, GAP};
-use crate::panel::{draw_panel_state, stale_note};
+use crate::panel::draw_panel;
 use crate::text::{Align, BODY, BODY_BOLD, HERO, SMALL, TITLE};
-use crate::view::{CurrentView, DayView, HourView, Panel, WeatherView};
+use crate::view::{CurrentView, DayView, HourView, WeatherView};
 
 const ON: BinaryColor = BinaryColor::On;
 
@@ -23,31 +23,14 @@ pub fn draw<D: DrawTarget<Color = BinaryColor>>(target: &mut D, area: Rectangle,
     );
 
     let body = titled_panel(target, left, &v.location);
-    match &v.current {
-        Panel::Fresh(c) => current(target, body, c, v.today.as_deref()),
-        Panel::Stale { data, age, .. } => {
-            current(target, body, data, v.today.as_deref());
-            stale_note(target, body, age);
-        }
-        other => draw_panel_state(target, body, other),
-    }
+    let today = v.today.as_deref();
+    draw_panel(target, body, &v.current, |t, a, c| current(t, a, c, today));
 
     let (top, bottom) = right.split_top(right.size.height * 11 / 20);
     let body = titled_panel(target, top, "Next 24 hours");
-    match &v.hourly {
-        Panel::Fresh(h) => hourly(target, body, h),
-        Panel::Stale { data, age, .. } => {
-            hourly(target, body, data);
-            stale_note(target, body, age);
-        }
-        other => draw_panel_state(target, body, other),
-    }
+    draw_panel(target, body, &v.hourly, |t, a, h| hourly(t, a, h));
     let body = titled_panel(target, bottom.split_top(GAP).1, "5-day forecast");
-    match &v.daily {
-        Panel::Fresh(d) => daily(target, body, d),
-        Panel::Stale { data, .. } => daily(target, body, data),
-        other => draw_panel_state(target, body, other),
-    }
+    draw_panel(target, body, &v.daily, |t, a, d| daily(t, a, d));
 }
 
 fn current<D: DrawTarget<Color = BinaryColor>>(
