@@ -35,6 +35,11 @@ hal_err_t hal_wifi_start(const char *ssid, const char *password);
 
 hal_err_t hal_wifi_status(hal_wifi_status_t *out);
 
+/* Block until connected or `timeout_ms` passes. On timeout returns the
+ * reason of the last failure (HAL_ERR_WIFI_AUTH, HAL_ERR_WIFI_NO_AP,
+ * HAL_ERR_WIFI_DISCONNECTED) or HAL_ERR_TIMEOUT if none is known yet. */
+hal_err_t hal_wifi_wait_connected(uint32_t timeout_ms);
+
 #ifdef __cplusplus
 }
 #endif

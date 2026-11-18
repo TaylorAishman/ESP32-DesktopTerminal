@@ -37,8 +37,16 @@ static void set_state(hal_wifi_state_t state, hal_err_t err)
     if (state != HAL_WIFI_CONNECTED) {
         s_ipv4 = 0;
     }
-    if (err != HAL_OK || state == HAL_WIFI_CONNECTED) {
-        s_last_error = err;
+    if (state == HAL_WIFI_CONNECTED) {
+        s_last_error = HAL_OK;
+    } else if (err != HAL_OK) {
+        /* Until the next successful connection, a generic failure does not
+         * hide a specific one: a rejected password often alternates with
+         * plain connection failures while the access point backs off. */
+        bool specific = s_last_error == HAL_ERR_WIFI_AUTH || s_last_error == HAL_ERR_WIFI_NO_AP;
+        if (!(specific && err == HAL_ERR_WIFI_DISCONNECTED)) {
+            s_last_error = err;
+        }
     }
     taskEXIT_CRITICAL(&s_lock);
 }
@@ -53,7 +61,7 @@ static void retry_cb(void *arg)
     }
 }
 
-/* Map a disconnect reason to a HAL error (refined in hal_wifi_reason). */
+/* Map a disconnect reason to a HAL error. */
 hal_err_t hal_wifi_reason(uint8_t reason);
 
 static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -86,8 +94,39 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 
 hal_err_t hal_wifi_reason(uint8_t reason)
 {
-    (void)reason;
-    return HAL_ERR_WIFI_DISCONNECTED;
+    switch (reason) {
+    /* The access point rejected our credentials. */
+    case WIFI_REASON_AUTH_EXPIRE:
+    case WIFI_REASON_MIC_FAILURE:
+    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+    case WIFI_REASON_802_1X_AUTH_FAILED:
+    case WIFI_REASON_AUTH_FAIL:
+    case WIFI_REASON_HANDSHAKE_TIMEOUT:
+        return HAL_ERR_WIFI_AUTH;
+    /* No network with that name (and acceptable security) in range. */
+    case WIFI_REASON_NO_AP_FOUND:
+    case WIFI_REASON_NO_AP_FOUND_W_COMPATIBLE_SECURITY:
+    case WIFI_REASON_NO_AP_FOUND_IN_AUTHMODE_THRESHOLD:
+    case WIFI_REASON_NO_AP_FOUND_IN_RSSI_THRESHOLD:
+        return HAL_ERR_WIFI_NO_AP;
+    default:
+        return HAL_ERR_WIFI_DISCONNECTED;
+    }
+}
+
+hal_err_t hal_wifi_wait_connected(uint32_t timeout_ms)
+{
+    if (s_events == NULL) {
+        return HAL_ERR_NOT_INIT;
+    }
+    EventBits_t bits = xEventGroupWaitBits(s_events, BIT_CONNECTED, pdFALSE, pdTRUE, pdMS_TO_TICKS(timeout_ms));
+    if (bits & BIT_CONNECTED) {
+        return HAL_OK;
+    }
+    taskENTER_CRITICAL(&s_lock);
+    hal_err_t last = s_last_error;
+    taskEXIT_CRITICAL(&s_lock);
+    return last != HAL_OK ? last : HAL_ERR_TIMEOUT;
 }
 
 hal_err_t hal_wifi_start(const char *ssid, const char *password)
