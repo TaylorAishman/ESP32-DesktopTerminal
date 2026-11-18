@@ -59,3 +59,24 @@ fn home_page() {
     });
     assert_golden("page_home", &fb);
 }
+
+/// The render entry point produces exactly the frames composed by hand above.
+#[test]
+fn render_entry_point_matches_pages() {
+    for (page, name) in [
+        (Page::Home, "page_home"),
+        (Page::Weather, "page_weather"),
+        (Page::News, "page_news"),
+        (Page::Finance, "page_finance"),
+    ] {
+        let mut fb = FrameBuffer::new();
+        dt_ui::render(
+            &mut fb,
+            &dt_ui::Screen::Page(page),
+            &full_store(),
+            &CONFIG,
+            &context(),
+        );
+        assert_golden(name, &fb);
+    }
+}

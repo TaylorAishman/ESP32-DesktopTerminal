@@ -10,6 +10,7 @@ pub mod icon;
 pub mod layout;
 pub mod pages;
 pub mod panel;
+pub mod render;
 pub mod system;
 pub mod text;
 pub mod ui_icon;
@@ -18,3 +19,4 @@ pub mod weather_icon;
 
 pub use framebuffer::FrameBuffer;
 pub use icon::Icon;
+pub use render::{page_for_button, render, Screen};
