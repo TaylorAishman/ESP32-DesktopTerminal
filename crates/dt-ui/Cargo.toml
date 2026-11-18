@@ -1,0 +1,11 @@
+[package]
+name = "dt-ui"
+description = "Frame buffer, fonts, icons, widgets and pages."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+dt-core.workspace = true

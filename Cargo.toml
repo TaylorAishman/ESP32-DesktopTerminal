@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/dt-config",
+    "crates/dt-core",
+    "crates/dt-ui",
+    "crates/dt-sim",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.82"
+publish = false
+
+[workspace.dependencies]
+dt-config = { path = "crates/dt-config" }
+dt-core = { path = "crates/dt-core" }
+dt-ui = { path = "crates/dt-ui" }
