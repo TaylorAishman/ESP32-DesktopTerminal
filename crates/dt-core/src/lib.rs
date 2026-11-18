@@ -7,6 +7,8 @@ pub mod api_error;
 pub mod error;
 pub mod model;
 pub mod platform;
+pub mod secret;
 pub mod time;
 
 pub use error::{AppError, Category, ErrorCode};
+pub use secret::Secret;
