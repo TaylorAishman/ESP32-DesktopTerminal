@@ -10,8 +10,10 @@ use core::ffi::CStr;
 
 use esp_idf_sys::dt_hal as ffi;
 
+pub mod display;
 pub mod error;
 
+pub use display::EinkDisplay;
 pub use error::HalError;
 
 /// Version string reported by the C HAL.
