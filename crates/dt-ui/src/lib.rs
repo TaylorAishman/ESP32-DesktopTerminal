@@ -4,11 +4,13 @@
 
 pub mod chart;
 pub mod chrome;
+pub mod format;
 pub mod framebuffer;
 pub mod icon;
 pub mod layout;
 pub mod text;
 pub mod ui_icon;
+pub mod view;
 pub mod weather_icon;
 
 pub use framebuffer::FrameBuffer;
