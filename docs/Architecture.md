@@ -240,10 +240,14 @@ in any other crate.
 **Errors.** One `AppError` type: a stable code, a category, a message, and a
 hint telling the user what to do. See §9.
 
-**Models** are provider-neutral (REQ-DM-03):
+**Models** are provider-neutral (REQ-DM-03) and always metric; conversion to
+the user's units happens when formatting. Current conditions and the forecast
+are separate models because they come from separate endpoints and refresh on
+different schedules.
 
 ```rust
-pub struct Weather  { pub current: Current, pub hourly: Vec<HourlyPoint>, pub daily: Vec<DailySummary> }
+pub struct Current  { /* temperature, feels-like, condition, humidity, wind, sunrise, sunset */ }
+pub struct Forecast { pub hourly: Vec<HourlyPoint>, pub daily: Vec<DailySummary> }
 pub struct NewsTopic { pub title: String, pub headlines: Vec<Headline> }
 pub struct Quote    { pub label: String, pub symbol: String, pub price: f32, pub change: f32,
                       pub change_pct: f32, pub day_low: f32, pub day_high: f32, pub history: History }
