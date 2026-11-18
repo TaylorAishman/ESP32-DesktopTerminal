@@ -27,6 +27,14 @@ extern "C" {
  * the panel on. Called again after a failure, it starts from scratch. */
 hal_err_t hal_display_init(void);
 
+/* Show a full frame: wake the panel if needed, transfer, run a full refresh
+ * (several seconds) and put the panel back into deep sleep. len must be
+ * HAL_DISPLAY_FRAME_BYTES. */
+hal_err_t hal_display_show(const uint8_t *frame, size_t len);
+
+/* Clear the panel to white with a full refresh, then sleep. */
+hal_err_t hal_display_clear(void);
+
 /* Power the panel off and put the controller into deep sleep. The next
  * hal_display_init() wakes it with a hardware reset. */
 hal_err_t hal_display_sleep(void);
