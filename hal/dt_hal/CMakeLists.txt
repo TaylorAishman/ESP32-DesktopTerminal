@@ -3,6 +3,7 @@
 idf_component_register(
     SRCS
         "src/epd_transport.c"
+        "src/hal_buttons.c"
         "src/hal_display.c"
         "src/hal_err.c"
         "src/hal_http.c"

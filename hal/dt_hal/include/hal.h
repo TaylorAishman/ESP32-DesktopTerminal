@@ -19,6 +19,7 @@
 #ifndef DT_HAL_H
 #define DT_HAL_H
 
+#include "hal_buttons.h"
 #include "hal_display.h"
 #include "hal_err.h"
 #include "hal_http.h"
