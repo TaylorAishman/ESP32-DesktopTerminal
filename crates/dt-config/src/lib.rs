@@ -4,6 +4,7 @@
 
 pub mod api;
 pub mod error;
+pub mod schedule;
 pub mod secrets;
 pub mod user;
 pub mod validate;
