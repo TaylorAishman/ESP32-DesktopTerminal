@@ -3,6 +3,7 @@
 idf_component_register(
     SRCS
         "src/epd_transport.c"
+        "src/hal_display.c"
         "src/hal_err.c"
         "src/hal_version.c"
     INCLUDE_DIRS
@@ -11,4 +12,5 @@ idf_component_register(
         driver
         esp_driver_gpio
         esp_driver_spi
+        esp_timer
 )
