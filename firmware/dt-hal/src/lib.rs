@@ -14,6 +14,7 @@ pub mod clock;
 pub mod display;
 pub mod error;
 pub mod http;
+pub mod store;
 pub mod system;
 pub mod wifi;
 
@@ -21,6 +22,7 @@ pub use clock::HalClock;
 pub use display::EinkDisplay;
 pub use error::HalError;
 pub use http::HalHttp;
+pub use store::HalStore;
 pub use system::HalSystem;
 pub use wifi::HalWifi;
 
