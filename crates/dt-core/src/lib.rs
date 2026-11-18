@@ -1,5 +1,7 @@
 //! Models, data store, parsers, API manager and platform traits.
 
+#![forbid(unsafe_code)]
+
 pub mod api;
 pub mod api_error;
 pub mod error;

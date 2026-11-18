@@ -19,6 +19,8 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+      - name: Unsafe confinement
+        run: scripts/check-unsafe.sh
       - name: Format
         run: cargo fmt --all --check
       - name: Clippy
