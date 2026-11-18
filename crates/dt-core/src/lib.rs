@@ -7,6 +7,7 @@ pub mod api_error;
 pub mod config;
 pub mod error;
 pub mod model;
+pub mod parse;
 pub mod platform;
 pub mod secret;
 pub mod store;
