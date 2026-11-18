@@ -1,0 +1,18 @@
+[package]
+name = "dt-firmware"
+description = "Desktop terminal firmware: boot, threads and event loop."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "dt-firmware"
+harness = false
+
+[dependencies]
+esp-idf-sys.workspace = true
+
+[build-dependencies]
+embuild.workspace = true

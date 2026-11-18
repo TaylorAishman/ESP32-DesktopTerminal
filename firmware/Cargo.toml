@@ -1,0 +1,22 @@
+# Device workspace: built with the esp toolchain for the ESP32 (see docs/Setup.md).
+[workspace]
+resolver = "2"
+members = ["dt-firmware"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.82"
+publish = false
+
+[workspace.dependencies]
+esp-idf-sys = "0.38"
+embuild = "0.33"
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # symbols do not take flash space
+opt-level = "z"

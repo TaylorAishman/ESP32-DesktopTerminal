@@ -1,0 +1,10 @@
+# ESP-IDF options for the desktop terminal. Applied on top of ESP-IDF defaults.
+
+# Rust needs more stack than C's defaults.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
+CONFIG_FREERTOS_IDLE_TASK_STACKSIZE=4096
+CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=4096
+
+# 1 ms tick so thread::sleep and timeouts have useful resolution.
+CONFIG_FREERTOS_HZ=1000
