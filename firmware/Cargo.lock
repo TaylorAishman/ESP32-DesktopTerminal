@@ -273,6 +273,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dt-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "dt-firmware"
 version = "0.1.0"
 dependencies = [
@@ -285,6 +293,7 @@ dependencies = [
 name = "dt-hal"
 version = "0.1.0"
 dependencies = [
+ "dt-core",
  "esp-idf-sys",
 ]
 

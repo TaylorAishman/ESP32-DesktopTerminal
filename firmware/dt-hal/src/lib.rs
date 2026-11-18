@@ -1,11 +1,18 @@
 //! Safe wrappers around the C hardware abstraction layer (`hal/dt_hal`).
 //!
 //! This is the only crate in the project allowed to contain `unsafe` code.
-//! Every `unsafe` block carries a `SAFETY:` comment explaining why it is sound.
+//! Every `unsafe` block carries a `SAFETY:` comment explaining why it is sound;
+//! clippy enforces that.
+
+#![deny(clippy::undocumented_unsafe_blocks)]
 
 use core::ffi::CStr;
 
 use esp_idf_sys::dt_hal as ffi;
+
+pub mod error;
+
+pub use error::HalError;
 
 /// Version string reported by the C HAL.
 pub fn version() -> &'static str {
