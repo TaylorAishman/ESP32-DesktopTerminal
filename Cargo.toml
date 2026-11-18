@@ -20,3 +20,4 @@ publish = false
 dt-config = { path = "crates/dt-config" }
 dt-core = { path = "crates/dt-core" }
 dt-ui = { path = "crates/dt-ui" }
+embedded-graphics = "0.8.2"
