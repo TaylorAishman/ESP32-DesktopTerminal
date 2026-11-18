@@ -7,12 +7,13 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings
 
 jobs:
   host:
     name: Host crates (fmt, clippy, test)
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -27,3 +28,30 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - name: Test
         run: cargo test --workspace
+
+  firmware:
+    name: Firmware build (example config)
+    runs-on: ubuntu-latest
+    env:
+      # No secrets in CI: build with the committed templates.
+      DT_ALLOW_EXAMPLE_CONFIG: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install the esp Rust toolchain
+        uses: esp-rs/xtensa-toolchain@v1.7
+        with:
+          buildtargets: esp32
+          ldproxy: true
+          override: false
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: firmware
+      - name: Cache ESP-IDF
+        uses: actions/cache@v4
+        with:
+          path: firmware/.embuild
+          key: esp-idf-${{ hashFiles('firmware/.cargo/config.toml') }}
+      - name: Build
+        working-directory: firmware
+        run: cargo build --release
