@@ -4,6 +4,7 @@
 
 pub mod framebuffer;
 pub mod icon;
+pub mod layout;
 pub mod text;
 pub mod ui_icon;
 pub mod weather_icon;
