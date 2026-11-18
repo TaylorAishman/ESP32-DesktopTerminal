@@ -2,8 +2,6 @@
 
 #![forbid(unsafe_code)]
 
-use std::{thread, time::Duration};
-
 use dt_core::platform::{Display, System};
 use dt_core::store::Store;
 use dt_ui::view::Context;
@@ -11,6 +9,7 @@ use dt_ui::{render, FrameBuffer, Screen};
 use log::{error, info, warn};
 
 mod config;
+mod events;
 mod logger;
 
 use config::CONFIG;
@@ -61,7 +60,21 @@ fn main() {
 
     let heap = system.heap();
     info!("heap: {} B free, {} B lowest", heap.free_bytes, heap.min_free_bytes);
+
+    let (tx, rx) = events::channel();
+    if let Err(e) = events::spawn_buttons(tx) {
+        error!("could not start the buttons thread: {e}");
+    }
+
+    // The UI event loop. Every sender is gone only if all feeder threads
+    // failed to start; there is then nothing left to wait for.
+    for event in rx {
+        match event {
+            events::Event::Button(b) => info!("button {} {:?}", b.button.number(), b.action),
+        }
+    }
+    error!("event queue closed");
     loop {
-        thread::sleep(Duration::from_secs(60));
+        std::thread::sleep(std::time::Duration::from_secs(60));
     }
 }
