@@ -10,6 +10,7 @@ use core::ffi::CStr;
 
 use esp_idf_sys::dt_hal as ffi;
 
+pub mod buttons;
 pub mod clock;
 pub mod display;
 pub mod error;
@@ -18,6 +19,7 @@ pub mod store;
 pub mod system;
 pub mod wifi;
 
+pub use buttons::HalButtons;
 pub use clock::HalClock;
 pub use display::EinkDisplay;
 pub use error::HalError;
