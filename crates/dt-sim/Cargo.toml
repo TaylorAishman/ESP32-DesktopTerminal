@@ -10,3 +10,6 @@ publish.workspace = true
 [dependencies]
 dt-core.workspace = true
 dt-ui.workspace = true
+
+[dev-dependencies]
+dt-core = { workspace = true, features = ["testing"] }
