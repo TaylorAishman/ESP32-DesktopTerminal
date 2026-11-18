@@ -21,6 +21,7 @@ dt-config = { path = "crates/dt-config" }
 dt-core = { path = "crates/dt-core" }
 dt-ui = { path = "crates/dt-ui" }
 embedded-graphics = "0.8.2"
+log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "1.2"
