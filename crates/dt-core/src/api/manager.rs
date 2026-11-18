@@ -8,9 +8,10 @@ use std::sync::{Arc, Mutex};
 use super::fetch::{execute, FetchReport};
 use super::jobs::{build_jobs, Job};
 use super::market::is_us_market_open;
+use super::persist;
 use super::scheduler::{Action, Outcome, Scheduler};
 use crate::config::Config;
-use crate::platform::{Clock, HttpClient, Wifi};
+use crate::platform::{Clock, HttpClient, Storage, Wifi};
 use crate::store::{PageSet, Store};
 
 /// Longest single wait, so the loop notices connectivity changes promptly.
@@ -45,6 +46,7 @@ pub struct ApiManager<H: HttpClient> {
     store: Arc<Mutex<Store>>,
     clock: Arc<dyn Clock>,
     wifi: Arc<dyn Wifi>,
+    storage: Arc<dyn Storage>,
     notify: Notify,
 }
 
@@ -55,11 +57,22 @@ impl<H: HttpClient> ApiManager<H> {
         store: Arc<Mutex<Store>>,
         clock: Arc<dyn Clock>,
         wifi: Arc<dyn Wifi>,
+        storage: Arc<dyn Storage>,
         notify: Notify,
     ) -> Self {
         let jobs = build_jobs(config);
         let seed = clock.monotonic().as_millis() ^ 0x5DEE_CE66;
-        let scheduler = Scheduler::new(&jobs, clock.monotonic(), seed);
+        let mut scheduler = Scheduler::new(&jobs, clock.monotonic(), seed);
+        // Call counts survive restarts, so rebooting cannot reset a quota.
+        let ids: Vec<&'static str> = scheduler.provider_ids().to_vec();
+        for id in ids {
+            if let Some(limiter) = scheduler.limiter_mut(id) {
+                if persist::worth_persisting(limiter) {
+                    let r = persist::restore(storage.as_ref(), id, limiter, clock.now());
+                    log::info!("{id}: call counts {r:?}");
+                }
+            }
+        }
         // One receive buffer, sized for the largest endpoint and reused.
         let size = jobs
             .iter()
@@ -75,6 +88,7 @@ impl<H: HttpClient> ApiManager<H> {
             store,
             clock,
             wifi,
+            storage,
             notify,
         }
     }
@@ -119,6 +133,12 @@ impl<H: HttpClient> ApiManager<H> {
                 };
                 self.scheduler
                     .report(i, &report.outcome, self.clock.monotonic());
+                let provider = job.provider.id;
+                if let Some(limiter) = self.scheduler.limiter(provider) {
+                    if persist::worth_persisting(limiter) {
+                        persist::save(self.storage.as_ref(), provider, limiter);
+                    }
+                }
                 if !pages.is_empty() {
                     (self.notify)(pages);
                 }

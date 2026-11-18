@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use dt_core::api::{ApiManager, Step};
-use dt_core::platform::fake::{FakeClock, FakeHttp, FakeResponse, FakeWifi};
+use dt_core::platform::fake::{FakeClock, FakeHttp, FakeResponse, FakeStorage, FakeWifi};
 use dt_core::platform::UnixTime;
 use dt_core::store::{PageSet, Store};
 use dt_core::ErrorCode;
@@ -45,6 +45,7 @@ fn rig() -> Rig {
         store.clone(),
         Arc::new(clock.clone()),
         Arc::new(wifi.clone()),
+        Arc::new(FakeStorage::new()),
         Box::new(move |pages| {
             let mut n = n.lock().unwrap();
             *n = n.union(pages);
@@ -142,6 +143,7 @@ fn failures_are_recorded_and_others_continue() {
         r.store.clone(),
         Arc::new(r.clock.clone()),
         Arc::new(r.wifi.clone()),
+        Arc::new(FakeStorage::new()),
         Box::new(|_| {}),
     );
     r.wifi.set_connected();
@@ -157,4 +159,40 @@ fn failures_are_recorded_and_others_continue() {
     // A rejected key backs off to the full interval: each topic tried once
     // or twice in the hour, not hammered.
     assert!(r.manager.scheduler().failures(4) <= 2);
+}
+
+#[test]
+fn counts_survive_a_restart() {
+    let storage = FakeStorage::new();
+    let clock = FakeClock::synced_at(UnixTime(1_794_873_600));
+    let wifi = FakeWifi::new();
+    wifi.set_connected();
+    let http = FakeHttp::new();
+    http.route("", FakeResponse::ok("{}"));
+    let make = |http: FakeHttp| {
+        ApiManager::new(
+            &CONFIG,
+            http,
+            Arc::new(Mutex::new(Store::new(4, 4))),
+            Arc::new(clock.clone()),
+            Arc::new(wifi.clone()),
+            Arc::new(storage.clone()),
+            Box::new(|_| {}),
+        )
+    };
+    let mut first = make(http.clone());
+    for _ in 0..200 {
+        if let Step::Idle(d) = first.step() {
+            clock.advance(d);
+        }
+    }
+    let used = first.scheduler().limiter("newsapi").unwrap().state()[0].count;
+    assert!(used > 0);
+    drop(first);
+    // "Reboot": a new manager restores the count from storage.
+    let second = make(http);
+    assert_eq!(
+        second.scheduler().limiter("newsapi").unwrap().state()[0].count,
+        used
+    );
 }

@@ -6,6 +6,7 @@ pub mod fetch;
 pub mod jobs;
 pub mod manager;
 pub mod market;
+pub mod persist;
 pub mod rate_limit;
 pub mod request;
 pub mod scheduler;
