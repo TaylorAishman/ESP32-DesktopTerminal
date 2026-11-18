@@ -2,5 +2,6 @@
 //! page frame.
 
 pub mod finance;
+pub mod home;
 pub mod news;
 pub mod weather;

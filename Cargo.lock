@@ -98,12 +98,14 @@ dependencies = [
  "dt-ui",
  "embedded-graphics",
  "png",
+ "serde_json",
 ]
 
 [[package]]
 name = "dt-ui"
 version = "0.1.0"
 dependencies = [
+ "dt-core",
  "embedded-graphics",
  "resvg",
  "u8g2-fonts",

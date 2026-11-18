@@ -51,3 +51,11 @@ fn finance_page() {
     });
     assert_golden("page_finance", &fb);
 }
+
+#[test]
+fn home_page() {
+    let fb = framed(Page::Home, |fb, body| {
+        dt_ui::pages::home::draw(fb, body, &view::home(&full_store(), &CONFIG, &context()));
+    });
+    assert_golden("page_home", &fb);
+}

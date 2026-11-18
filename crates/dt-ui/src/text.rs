@@ -160,10 +160,21 @@ impl Font {
         }
         if !words.is_empty() {
             if let Some(last) = lines.last_mut() {
-                *last = self.truncate(&format!("{last}{ELLIPSIS}{ELLIPSIS}"), max_width);
+                *last = self.end_with_ellipsis(last, max_width);
             }
         }
         lines
+    }
+
+    /// `line` shortened as needed so that it plus "..." fits `max_width`,
+    /// with "..." appended: marks text that continues beyond this line.
+    fn end_with_ellipsis(&self, line: &str, max_width: i32) -> String {
+        let mut s = line.trim_end().to_owned();
+        while !s.is_empty() && self.width(&format!("{s}{ELLIPSIS}")) > max_width {
+            s.pop();
+            s.truncate(s.trim_end().len());
+        }
+        format!("{s}{ELLIPSIS}")
     }
 
     /// Byte length of the longest prefix of `word` that fits (at least one
@@ -228,7 +239,16 @@ mod tests {
         let lines = BODY.wrap(text, 300, 2);
         assert_eq!(lines.len(), 2);
         assert!(lines.iter().all(|l| BODY.width(l) <= 300), "{lines:?}");
-        assert!(lines[1].ends_with("..."), "{lines:?}");
+        assert!(
+            lines[1].ends_with("...") && !lines[1].ends_with("...."),
+            "{lines:?}"
+        );
+        let one = BODY.wrap(text, 300, 1);
+        assert!(
+            one[0].ends_with("...") && !one[0].ends_with("...."),
+            "{one:?}"
+        );
+        assert!(BODY.width(&one[0]) <= 300);
 
         let all = BODY.wrap(text, 300, 10);
         assert!(all.len() >= 3);
