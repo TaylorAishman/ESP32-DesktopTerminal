@@ -1,5 +1,6 @@
 //! Models, data store, parsers, API manager and platform traits.
 
+pub mod api_error;
 pub mod error;
 pub mod model;
 pub mod platform;
