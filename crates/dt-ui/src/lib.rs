@@ -5,6 +5,7 @@
 pub mod framebuffer;
 pub mod icon;
 pub mod text;
+pub mod ui_icon;
 pub mod weather_icon;
 
 pub use framebuffer::FrameBuffer;

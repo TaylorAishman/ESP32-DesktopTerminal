@@ -2,6 +2,7 @@
 
 use dt_sim::image::assert_golden;
 use dt_sim::sheet::{all_sizes, contact_sheet};
+use dt_ui::ui_icon::UI_ICONS;
 use dt_ui::weather_icon::WEATHER_ICONS;
 use dt_ui::Icon;
 
@@ -33,4 +34,11 @@ fn weather_icons() {
         "icons_weather_large_b",
         &contact_sheet(&WEATHER_ICONS[6..12], &large),
     );
+}
+
+#[test]
+fn interface_icons() {
+    let sizes = [16, 24, 32, 48];
+    assert_golden("icons_ui_a", &contact_sheet(&UI_ICONS[..8], &sizes));
+    assert_golden("icons_ui_b", &contact_sheet(&UI_ICONS[8..], &sizes));
 }
