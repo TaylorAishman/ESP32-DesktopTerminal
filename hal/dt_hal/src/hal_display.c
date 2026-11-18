@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 
 #include "epd_transport.h"
@@ -35,6 +36,46 @@ static const char *TAG = "hal_display";
 #define CHUNK_BYTES 1000
 _Static_assert(HAL_DISPLAY_FRAME_BYTES % CHUNK_BYTES == 0, "chunk must divide the frame");
 
+/* Longest a caller waits for another thread's display operation. A refresh
+ * takes ~5 s, so this covers a refresh plus a full re-init with margin. */
+#define LOCK_TIMEOUT_MS 60000
+
+/* Serialises all public calls (HAL rule 5). Created on first use. */
+static SemaphoreHandle_t s_lock;
+static StaticSemaphore_t s_lock_storage;
+static portMUX_TYPE s_lock_init = portMUX_INITIALIZER_UNLOCKED;
+
+static hal_err_t lock(void)
+{
+    taskENTER_CRITICAL(&s_lock_init);
+    if (s_lock == NULL) {
+        s_lock = xSemaphoreCreateMutexStatic(&s_lock_storage);
+    }
+    taskEXIT_CRITICAL(&s_lock_init);
+    if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(LOCK_TIMEOUT_MS)) != pdTRUE) {
+        ESP_LOGE(TAG, "display busy in another thread for %d ms", LOCK_TIMEOUT_MS);
+        return HAL_ERR_TIMEOUT;
+    }
+    return HAL_OK;
+}
+
+static void unlock(void)
+{
+    xSemaphoreGive(s_lock);
+}
+
+/* Run `call` with the display lock held. */
+#define LOCKED(call)                                                           \
+    do {                                                                       \
+        hal_err_t lock_rc_ = lock();                                           \
+        if (lock_rc_ != HAL_OK) {                                              \
+            return lock_rc_;                                                   \
+        }                                                                      \
+        hal_err_t call_rc_ = (call);                                           \
+        unlock();                                                              \
+        return call_rc_;                                                       \
+    } while (0)
+
 /* Panel state as far as this module knows. Anything unexpected sends the next
  * call back through a full init. */
 static bool s_powered;
@@ -54,7 +95,7 @@ static hal_err_t send(uint8_t cmd, const uint8_t *data, size_t len)
     return epd_command_data(cmd, data, len);
 }
 
-hal_err_t hal_display_init(void)
+static hal_err_t init_locked(void)
 {
     s_powered = false;
     TRY(epd_transport_init());
@@ -95,6 +136,8 @@ hal_err_t hal_display_init(void)
     return HAL_OK;
 }
 
+static hal_err_t sleep_locked(void);
+
 /* Frame data in either polarity. The controller's "new" RAM takes our layout
  * as-is (1 = black); the "old" RAM takes the inverse. */
 typedef enum { FILL_NONE, FILL_WHITE } fill_t;
@@ -130,7 +173,7 @@ static hal_err_t refresh(void)
 static hal_err_t show_planes(const uint8_t *frame, fill_t fill)
 {
     if (!s_powered) {
-        hal_err_t err = hal_display_init();
+        hal_err_t err = init_locked();
         if (err != HAL_OK) {
             return err;
         }
@@ -138,25 +181,11 @@ static hal_err_t show_planes(const uint8_t *frame, fill_t fill)
     TRY(send_plane(CMD_DATA_OLD, frame, true, fill));
     TRY(send_plane(CMD_DATA_NEW, frame, false, fill));
     TRY(refresh());
-    return hal_display_sleep();
+    return sleep_locked();
 }
 
-hal_err_t hal_display_show(const uint8_t *frame, size_t len)
-{
-    if (frame == NULL || len != HAL_DISPLAY_FRAME_BYTES) {
-        ESP_LOGE(TAG, "show: bad frame (len %u, expected %u)", (unsigned)len,
-                 (unsigned)HAL_DISPLAY_FRAME_BYTES);
-        return HAL_ERR_INVALID_ARG;
-    }
-    return show_planes(frame, FILL_NONE);
-}
 
-hal_err_t hal_display_clear(void)
-{
-    return show_planes(NULL, FILL_WHITE);
-}
-
-hal_err_t hal_display_sleep(void)
+static hal_err_t sleep_locked(void)
 {
     if (!s_powered) {
         /* Already off, or in an unknown state after an error: a reset plus
@@ -176,4 +205,31 @@ hal_err_t hal_display_sleep(void)
     TRY(send(CMD_DEEP_SLEEP, check, sizeof check));
     ESP_LOGI(TAG, "panel asleep");
     return HAL_OK;
+}
+
+/* ---- Public API: every call holds the display lock. ---- */
+
+hal_err_t hal_display_init(void)
+{
+    LOCKED(init_locked());
+}
+
+hal_err_t hal_display_sleep(void)
+{
+    LOCKED(sleep_locked());
+}
+
+hal_err_t hal_display_show(const uint8_t *frame, size_t len)
+{
+    if (frame == NULL || len != HAL_DISPLAY_FRAME_BYTES) {
+        ESP_LOGE(TAG, "show: bad frame (len %u, expected %u)", (unsigned)len,
+                 (unsigned)HAL_DISPLAY_FRAME_BYTES);
+        return HAL_ERR_INVALID_ARG;
+    }
+    LOCKED(show_planes(frame, FILL_NONE));
+}
+
+hal_err_t hal_display_clear(void)
+{
+    LOCKED(show_planes(NULL, FILL_WHITE));
 }
