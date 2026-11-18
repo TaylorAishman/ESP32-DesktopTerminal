@@ -7,6 +7,7 @@ idf_component_register(
         "src/hal_err.c"
         "src/hal_http.c"
         "src/hal_sys.c"
+        "src/hal_time.c"
         "src/hal_version.c"
         "src/hal_wifi.c"
         "src/nvs_init.c"
