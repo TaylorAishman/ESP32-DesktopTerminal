@@ -7,6 +7,8 @@ idf_component_register(
         "src/hal_err.c"
         "src/hal_sys.c"
         "src/hal_version.c"
+        "src/hal_wifi.c"
+        "src/nvs_init.c"
     INCLUDE_DIRS
         "include"
     PRIV_REQUIRES
@@ -14,4 +16,8 @@ idf_component_register(
         esp_driver_gpio
         esp_driver_spi
         esp_timer
+        esp_wifi
+        esp_netif
+        esp_event
+        nvs_flash
 )

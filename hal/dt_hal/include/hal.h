@@ -23,6 +23,7 @@
 #include "hal_err.h"
 #include "hal_pins.h"
 #include "hal_sys.h"
+#include "hal_wifi.h"
 
 #ifdef __cplusplus
 extern "C" {
