@@ -76,7 +76,22 @@ Log out and back in for the group change to apply.
 
 On the board, DIP switch SW1 position 1 ("USB to UART") must be ON to flash.
 
-### 2.5 Build and flash
+### 2.5 Configuration
+
+The build reads `config/api.toml` (committed), `config/user.toml` and
+`config/secrets.toml`. Create the last two from the templates:
+
+```sh
+cp config/user.example.toml config/user.toml        # location, topics, instruments
+cp config/secrets.example.toml config/secrets.toml  # Wi-Fi and API keys
+```
+
+The build validates all three, prints the derived API schedule, and stops with
+an explanation if anything is missing, still a placeholder, or inconsistent.
+To build without personal files (CI, or just to try the display), set
+`DT_ALLOW_EXAMPLE_CONFIG=1`; the firmware then has no working Wi-Fi or keys.
+
+### 2.6 Build and flash
 
 ```sh
 cd firmware

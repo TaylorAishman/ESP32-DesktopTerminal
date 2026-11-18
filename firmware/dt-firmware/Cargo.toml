@@ -12,8 +12,10 @@ name = "dt-firmware"
 harness = false
 
 [dependencies]
+dt-core.workspace = true
 dt-hal.workspace = true
 esp-idf-sys.workspace = true
 
 [build-dependencies]
+dt-config.workspace = true
 embuild.workspace = true

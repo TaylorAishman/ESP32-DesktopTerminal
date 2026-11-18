@@ -11,6 +11,7 @@ rust-version = "1.82"
 publish = false
 
 [workspace.dependencies]
+dt-config = { path = "../crates/dt-config" }
 dt-core = { path = "../crates/dt-core" }
 dt-hal = { path = "dt-hal" }
 esp-idf-sys = "0.38"
