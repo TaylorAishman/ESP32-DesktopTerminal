@@ -12,11 +12,13 @@ use esp_idf_sys::dt_hal as ffi;
 
 pub mod display;
 pub mod error;
+pub mod http;
 pub mod system;
 pub mod wifi;
 
 pub use display::EinkDisplay;
 pub use error::HalError;
+pub use http::HalHttp;
 pub use system::HalSystem;
 pub use wifi::HalWifi;
 
