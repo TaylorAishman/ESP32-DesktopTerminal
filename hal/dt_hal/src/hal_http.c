@@ -6,6 +6,7 @@
 
 #include "esp_crt_bundle.h"
 #include "esp_http_client.h"
+#include "esp_tls.h"
 
 #include "hal_internal.h"
 
@@ -15,6 +16,37 @@ static const char *TAG = "hal_http";
 #define HEADER_BUFFER 2048
 /* Transmit buffer: request line and headers, including the URL with key. */
 #define TX_BUFFER 1024
+
+/* Why a connection failed, from the TLS layer's last error. */
+static hal_err_t classify_open_failure(esp_http_client_handle_t client, esp_err_t open_err)
+{
+    int tls_code = 0;
+    int cert_flags = 0;
+    esp_err_t tls = esp_http_client_get_and_clear_last_tls_error(client, &tls_code, &cert_flags);
+    hal_err_t mapped;
+    switch (tls) {
+    case ESP_ERR_ESP_TLS_CANNOT_RESOLVE_HOSTNAME:
+        mapped = HAL_ERR_DNS;
+        break;
+    case ESP_ERR_ESP_TLS_CANNOT_CREATE_SOCKET:
+    case ESP_ERR_ESP_TLS_FAILED_CONNECT_TO_HOST:
+        mapped = HAL_ERR_CONNECT;
+        break;
+    case ESP_ERR_ESP_TLS_CONNECTION_TIMEOUT:
+        mapped = HAL_ERR_TIMEOUT;
+        break;
+    case ESP_OK:
+        mapped = open_err == ESP_ERR_HTTP_EAGAIN ? HAL_ERR_TIMEOUT : HAL_ERR_CONNECT;
+        break;
+    default:
+        /* Handshake, certificate or other TLS failure. */
+        mapped = HAL_ERR_TLS;
+        break;
+    }
+    ESP_LOGW(TAG, "connect failed: %s (tls %s, code %d, cert flags 0x%x) -> %s", esp_err_to_name(open_err),
+             esp_err_to_name(tls), tls_code, (unsigned)cert_flags, hal_err_str(mapped));
+    return mapped;
+}
 
 static esp_err_t on_event(esp_http_client_event_t *evt)
 {
@@ -61,13 +93,13 @@ hal_err_t hal_http_get(const hal_http_request_t *req, uint8_t *body, size_t body
     hal_err_t result = HAL_OK;
     esp_err_t err = esp_http_client_open(client, 0);
     if (err != ESP_OK) {
-        ESP_LOGW(TAG, "connect failed: %s", esp_err_to_name(err));
-        result = HAL_ERR_CONNECT;
+        result = classify_open_failure(client, err);
         goto done;
     }
-    if (esp_http_client_fetch_headers(client) < 0) {
-        ESP_LOGW(TAG, "no response headers");
-        result = HAL_ERR_IO;
+    int64_t headers = esp_http_client_fetch_headers(client);
+    if (headers < 0) {
+        result = headers == -ESP_ERR_HTTP_EAGAIN ? HAL_ERR_TIMEOUT : HAL_ERR_IO;
+        ESP_LOGW(TAG, "reading response headers failed -> %s", hal_err_str(result));
         goto done;
     }
     resp->status = esp_http_client_get_status_code(client);
@@ -76,8 +108,8 @@ hal_err_t hal_http_get(const hal_http_request_t *req, uint8_t *body, size_t body
     while (len < body_cap) {
         int n = esp_http_client_read(client, (char *)body + len, (int)(body_cap - len));
         if (n < 0) {
-            ESP_LOGW(TAG, "read failed after %u bytes", (unsigned)len);
-            result = HAL_ERR_IO;
+            result = n == -ESP_ERR_HTTP_EAGAIN ? HAL_ERR_TIMEOUT : HAL_ERR_IO;
+            ESP_LOGW(TAG, "read failed after %u bytes -> %s", (unsigned)len, hal_err_str(result));
             goto done;
         }
         if (n == 0) {
