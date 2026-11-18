@@ -13,6 +13,8 @@ publish = false
 [workspace.dependencies]
 dt-config = { path = "../crates/dt-config" }
 dt-core = { path = "../crates/dt-core" }
+dt-ui = { path = "../crates/dt-ui" }
+log = "0.4"
 dt-hal = { path = "dt-hal" }
 esp-idf-sys = "0.38"
 embuild = "0.33"

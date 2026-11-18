@@ -13,6 +13,8 @@ harness = false
 
 [dependencies]
 dt-core.workspace = true
+dt-ui.workspace = true
+log.workspace = true
 dt-hal.workspace = true
 esp-idf-sys.workspace = true
 
