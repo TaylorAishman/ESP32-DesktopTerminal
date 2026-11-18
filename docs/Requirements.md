@@ -248,7 +248,7 @@ design. The limits are config values, so a plan change is an edit to
 | OQ-5 | Provider limits. | **Resolved**: researched (§12.1); the scheduler derives intervals from them (§6.1). Residual: NewsAPI's Developer plan is licensed for development and testing only, so a unit used day-to-day or shipped to others needs a paid plan or a different news provider. |
 | OQ-6 | Should settings be changeable without re-flashing (captive portal, serial console)? | Open. Out of scope for v1. |
 | OQ-7 | Secrets are stored unencrypted in flash; anyone with the device can read them. | Open. Accepted for v1 and documented. |
-| OQ-8 | Which position of SW1-2 (panel drive resistor, A or B) does Waveshare specify for the 7.5" panel? | Open. Check the driver board's wiki page before first power-up of the panel (plan task C06). |
+| OQ-8 | Which position of SW1-2 (panel drive resistor, A or B) does Waveshare specify for the 7.5" panel? | **Resolved** on the bench (2026-11-18): the board's current setting drives the panel correctly; a test pattern displays with full contrast (plan task C07). |
 
 ## 14. Out of scope for v1
 
