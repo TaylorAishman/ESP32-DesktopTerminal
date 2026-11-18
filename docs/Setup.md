@@ -98,7 +98,29 @@ cd firmware
 cargo run --release     # builds, flashes with espflash and opens the serial monitor
 ```
 
-## 3. Versions
+## 3. Working on the screens
+
+Everything that draws runs on the PC. To see a screen:
+
+```sh
+cargo run -p dt-sim -- weather              # writes weather-full.png
+cargo run -p dt-sim -- news failed news.png # states: full, loading, failed, stale
+```
+
+Every page in every state, the icons, charts and type specimen are golden
+images in `crates/dt-sim/golden/`, compared pixel for pixel by `cargo test`.
+When a test fails, the frame it produced is written to
+`target/golden-failures/<name>.actual.png` (CI uploads that folder as the
+`golden-failures` artifact). If the change is intended:
+
+```sh
+UPDATE_GOLDEN=1 cargo test -p dt-sim
+git diff --stat crates/dt-sim/golden   # then look at each changed image
+```
+
+Commit the updated images with the change that caused them.
+
+## 4. Versions
 
 | Item | Version | Where it is pinned |
 |---|---|---|

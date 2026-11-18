@@ -26,8 +26,15 @@ jobs:
         run: cargo fmt --all --check
       - name: Clippy
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-      - name: Test
+      - name: Test (unit, component and golden-image tests)
         run: cargo test --workspace
+      - name: Upload frames that differ from their golden images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: target/golden-failures/
+          if-no-files-found: ignore
 
   firmware:
     name: Firmware build (example config)

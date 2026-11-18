@@ -142,14 +142,16 @@ mod tests {
     #[test]
     fn golden_comparison() {
         assert_golden("harness_sample", &sample());
+        // In update mode a mismatch would overwrite the golden image.
+        if std::env::var(UPDATE_ENV).is_ok() {
+            return;
+        }
         let mut changed = sample();
         Pixel(Point::new(5, 5), BinaryColor::On)
             .draw(&mut changed)
             .unwrap();
         let r = std::panic::catch_unwind(|| assert_golden("harness_sample", &changed));
-        if std::env::var(UPDATE_ENV).is_err() {
-            let msg = *r.unwrap_err().downcast::<String>().unwrap();
-            assert!(msg.contains("1 pixels differ"), "{msg}");
-        }
+        let msg = *r.unwrap_err().downcast::<String>().unwrap();
+        assert!(msg.contains("1 pixels differ"), "{msg}");
     }
 }
