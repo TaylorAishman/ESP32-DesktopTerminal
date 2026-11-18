@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+pub mod image;
+
 /// Configuration generated from `config/api.toml` and the example user and
 /// secrets files.
 pub mod config {

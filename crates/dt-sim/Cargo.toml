@@ -8,6 +8,8 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+embedded-graphics.workspace = true
+png.workspace = true
 dt-core.workspace = true
 dt-ui.workspace = true
 
