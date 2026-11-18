@@ -6,6 +6,7 @@
 #ifndef DT_HAL_SYS_H
 #define DT_HAL_SYS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "hal_err.h"
@@ -36,6 +37,20 @@ hal_reset_reason_t hal_sys_reset_reason(void);
 
 /* Restart the chip. Does not return. */
 void hal_sys_restart(void);
+
+/* Largest block hal_sys_retained_write() accepts. */
+#define HAL_SYS_RETAINED_MAX 256
+
+/*
+ * A small block of RTC memory that survives software resets, panics and
+ * watchdog resets, but not power loss. Protected by a magic number and a CRC:
+ * after power-on, or if the contents are corrupt, it reads as empty.
+ *
+ * hal_sys_retained_read copies up to `cap` bytes into `buf` and sets `*len`
+ * to the stored length (0 when empty). Not thread-safe; call from one thread.
+ */
+hal_err_t hal_sys_retained_read(uint8_t *buf, size_t cap, size_t *len);
+hal_err_t hal_sys_retained_write(const uint8_t *data, size_t len);
 
 #ifdef __cplusplus
 }
