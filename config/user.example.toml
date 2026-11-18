@@ -56,7 +56,7 @@ params = { country = "us", category = "technology" }
 # ETFs; indices such as the Dow are shown through an ETF that tracks them.
 
 [[finance.instruments]]
-label = "DJIA (DIA)"
+label = "DIA"
 symbol = "DIA"
 
 [[finance.instruments]]

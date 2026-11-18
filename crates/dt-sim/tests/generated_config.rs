@@ -39,6 +39,6 @@ fn round_trips_the_example_config() {
     );
     assert_eq!(CONFIG.topics.len(), 4);
     assert_eq!(CONFIG.topics[1].title, "World");
-    assert_eq!(CONFIG.instruments[0].label, "DJIA (DIA)");
+    assert_eq!(CONFIG.instruments[0].label, "DIA");
     assert_eq!(CONFIG.instruments[0].symbol, "DIA");
 }

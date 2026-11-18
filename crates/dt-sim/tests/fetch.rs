@@ -77,7 +77,7 @@ fn every_kind_succeeds_with_its_fixture() {
     let (r, _) = run(JobKind::Quote(0), FakeResponse::ok(QUOTE));
     match r.update.kind {
         UpdateKind::Quote(0, Ok(q)) => {
-            assert_eq!(q.label, "DJIA (DIA)");
+            assert_eq!(q.label, "DIA");
             assert_eq!(q.symbol, "DIA");
         }
         other => panic!("{other:?}"),

@@ -92,7 +92,7 @@ mod tests {
             .map(|i| i.symbol.as_str())
             .collect();
         assert_eq!(symbols, ["DIA", "VOO", "VXUS", "VTI"]);
-        assert_eq!(u.finance.instruments[0].label, "DJIA (DIA)");
+        assert_eq!(u.finance.instruments[0].label, "DIA");
     }
 
     #[test]
