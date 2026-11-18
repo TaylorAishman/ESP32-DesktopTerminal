@@ -1,4 +1,6 @@
 //! Finnhub `/quote`. https://finnhub.io/docs/api/quote
+//!
+//! Numbers are deserialised as `f64` and narrowed afterwards (see `owm`).
 
 use serde::Deserialize;
 
@@ -8,16 +10,16 @@ use crate::platform::UnixTime;
 #[derive(Deserialize)]
 struct Body {
     /// Current price.
-    c: f32,
+    c: f64,
     /// Change.
-    d: Option<f32>,
+    d: Option<f64>,
     /// Percent change.
-    dp: Option<f32>,
-    h: f32,
-    l: f32,
-    o: f32,
+    dp: Option<f64>,
+    h: f64,
+    l: f64,
+    o: f64,
     /// Previous close.
-    pc: f32,
+    pc: f64,
     /// Time of the last trade.
     t: i64,
 }
@@ -40,13 +42,13 @@ pub fn parse_quote(body: &[u8], label: &str, symbol: &str) -> Result<Option<Quot
     Ok(Some(Quote {
         label: label.to_owned(),
         symbol: symbol.to_owned(),
-        price: b.c,
-        change,
-        change_pct,
-        day_low: b.l,
-        day_high: b.h,
-        open: b.o,
-        previous_close: b.pc,
+        price: b.c as f32,
+        change: change as f32,
+        change_pct: change_pct as f32,
+        day_low: b.l as f32,
+        day_high: b.h as f32,
+        open: b.o as f32,
+        previous_close: b.pc as f32,
         at: UnixTime(b.t),
     }))
 }

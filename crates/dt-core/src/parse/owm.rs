@@ -1,4 +1,8 @@
 //! OpenWeatherMap 2.5 API: `/weather` and `/forecast`.
+//!
+//! Numbers are deserialised as `f64` and narrowed afterwards: the Xtensa LLVM
+//! backend cannot compile serde_json's `f32` visitor ("Cannot select:
+//! XtensaISD::PCREL_WRAPPER").
 //! https://openweathermap.org/current, https://openweathermap.org/forecast5
 
 use serde::Deserialize;
@@ -55,15 +59,15 @@ struct CurrentBody {
 
 #[derive(Deserialize)]
 struct CurrentMain {
-    temp: f32,
-    feels_like: f32,
+    temp: f64,
+    feels_like: f64,
     humidity: u8,
 }
 
 #[derive(Deserialize, Default)]
 struct Wind {
     #[serde(default)]
-    speed: f32,
+    speed: f64,
     deg: Option<u16>,
 }
 
@@ -80,13 +84,13 @@ pub fn parse_current(body: &[u8]) -> Result<Current, String> {
     Ok(Current {
         observed_at: UnixTime(b.dt),
         location: b.name,
-        temperature_c: b.main.temp,
-        feels_like_c: b.main.feels_like,
+        temperature_c: b.main.temp as f32,
+        feels_like_c: b.main.feels_like as f32,
         condition: condition(w.id),
         description: w.description.clone(),
         is_day: w.is_day(),
         humidity_pct: b.main.humidity,
-        wind_speed_ms: b.wind.speed,
+        wind_speed_ms: b.wind.speed as f32,
         wind_deg: b.wind.deg,
         sunrise: UnixTime(b.sys.sunrise),
         sunset: UnixTime(b.sys.sunset),
@@ -105,7 +109,7 @@ struct ForecastEntry {
     weather: Vec<WeatherEntry>,
     /// Probability of precipitation, 0 to 1.
     #[serde(default)]
-    pop: f32,
+    pop: f64,
     #[serde(default)]
     rain: Option<Volume>,
     #[serde(default)]
@@ -116,13 +120,13 @@ struct ForecastEntry {
 
 #[derive(Deserialize)]
 struct ForecastMain {
-    temp: f32,
+    temp: f64,
 }
 
 #[derive(Deserialize)]
 struct Volume {
     #[serde(rename = "3h", default)]
-    three_hours: f32,
+    three_hours: f64,
 }
 
 #[derive(Deserialize)]
@@ -144,15 +148,15 @@ pub fn parse_forecast(body: &[u8]) -> Result<Vec<HourlyPoint>, String> {
             let w = e.weather.first();
             HourlyPoint {
                 at: UnixTime(e.dt),
-                temperature_c: e.main.temp,
+                temperature_c: e.main.temp as f32,
                 condition: w.map_or(Condition::Unknown, |w| condition(w.id)),
                 is_day: match &e.sys {
                     Some(s) => s.pod != "n",
                     None => w.is_none_or(WeatherEntry::is_day),
                 },
-                precip_probability: e.pop.clamp(0.0, 1.0),
-                precip_mm: e.rain.map_or(0.0, |v| v.three_hours)
-                    + e.snow.map_or(0.0, |v| v.three_hours),
+                precip_probability: e.pop.clamp(0.0, 1.0) as f32,
+                precip_mm: (e.rain.map_or(0.0, |v| v.three_hours)
+                    + e.snow.map_or(0.0, |v| v.three_hours)) as f32,
             }
         })
         .collect();
