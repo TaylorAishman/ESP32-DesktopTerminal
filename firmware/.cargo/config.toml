@@ -13,3 +13,6 @@ build-std = ["std", "panic_abort"]
 MCU = "esp32"
 # Pinned so every machine builds against the same SDK. Change deliberately.
 ESP_IDF_VERSION = "v5.5.3"
+# The workspace is virtual; tell esp-idf-sys which crate is the binary so it
+# finds the C HAL component declared by its dependency dt-hal.
+ESP_IDF_SYS_ROOT_CRATE = "dt-firmware"

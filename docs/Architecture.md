@@ -89,10 +89,11 @@ ESP32-DesktopTerminal/
 │   ├── user.toml              real preferences                  (git-ignored)
 │   ├── secrets.example.toml   API keys, Wi-Fi                   (template)
 │   └── secrets.toml           real secrets                      (git- and AI-ignored)
-├── hal/                       C HAL — ESP-IDF component
-│   ├── CMakeLists.txt
-│   ├── include/hal/           hal.h, hal_err.h, hal_pins.h, hal_display.h, ...
-│   └── src/
+├── hal/                       C HAL
+│   └── dt_hal/                ESP-IDF component (ESP-IDF already has one named "hal")
+│       ├── CMakeLists.txt
+│       ├── include/           hal.h (umbrella, bindgen input), hal_err.h, hal_pins.h, ...
+│       └── src/
 ├── crates/
 │   ├── dt-config/             config schema, validation, code generation (host)
 │   ├── dt-core/               models, store, parsers, API manager, traits, errors
@@ -127,10 +128,18 @@ dependencies.
 
 ## 4. The C HAL
 
-An ESP-IDF component in `hal/`, registered with `esp-idf-sys` as an extra
-component so that its headers are run through `bindgen`. The exact wiring of
-extra components inside a Cargo workspace is the first technical risk and is
-proven by a spike (plan task A06).
+An ESP-IDF component, `dt_hal`, in `hal/dt_hal/`. `dt-hal`'s `Cargo.toml`
+declares it under `package.metadata.esp-idf-sys.extra_components`, so
+`esp-idf-sys` compiles it with ESP-IDF and runs `hal.h` through `bindgen` into
+the module `esp_idf_sys::dt_hal`. Two details matter (proven in plan task A06):
+
+- `esp-idf-sys` only reads extra components from the root crate and its direct
+  dependencies. The firmware workspace is virtual, so
+  `ESP_IDF_SYS_ROOT_CRATE = "dt-firmware"` is set in
+  `firmware/.cargo/config.toml`, and `dt-firmware` depends on `dt-hal`
+  directly.
+- After changing the component list, `cargo clean -p esp-idf-sys` forces the
+  bindings to regenerate.
 
 ### 4.1 Rules
 

@@ -276,7 +276,15 @@ dependencies = [
 name = "dt-firmware"
 version = "0.1.0"
 dependencies = [
+ "dt-hal",
  "embuild",
+ "esp-idf-sys",
+]
+
+[[package]]
+name = "dt-hal"
+version = "0.1.0"
+dependencies = [
  "esp-idf-sys",
 ]
 
