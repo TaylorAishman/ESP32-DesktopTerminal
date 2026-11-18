@@ -8,9 +8,10 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+dt-core.workspace = true
+serde_json.workspace = true
 embedded-graphics.workspace = true
 png.workspace = true
-dt-core.workspace = true
 dt-ui.workspace = true
 
 [build-dependencies]
